@@ -5,27 +5,19 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
+    name: Build, Lint & Test
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           cache: npm
           node-version-file: '.nvmrc'
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::649614366484:role/github-actions
-          aws-region: us-east-1
-      - name: Configure npm with CodeArtifact
-        run: |
-          CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain applyboard-repository-manager --domain-owner 649614366484 --query authorizationToken --output text`
-          echo "::add-mask::$CODEARTIFACT_AUTH_TOKEN"
-          npm config set //applyboard-repository-manager-649614366484.d.codeartifact.us-east-1.amazonaws.com/npm/applyboard-npm/:_authToken=${CODEARTIFACT_AUTH_TOKEN}
       - run: npm ci
       - run: npm run format:check
       - run: npm run lint

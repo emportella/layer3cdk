@@ -1,31 +1,44 @@
 import { CfnOutput, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import {
-  Alarm,
   ComparisonOperator,
   IAlarmAction,
   Stats,
   TreatMissingData,
 } from 'aws-cdk-lib/aws-cloudwatch';
 import { TablePropsV2, TableV2 } from 'aws-cdk-lib/aws-dynamodb';
-import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
+import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import {
-  ABConfig,
-  ABConstruct,
-  ABEnvProps,
-  ConstructProps,
-  generateAlarmConstructId,
-  generateConstructId,
-  generateDynamoTableName,
-} from '../common';
+  BaseConfig,
+  BaseConstruct,
+  BaseEnvProps,
+  resolveEnvProps,
+  resolveAndMergeEnvProps,
+  constructId,
+  arnExportName,
+} from '../core';
+import { dynamoTableName } from './dynamo.name.conventions';
 import {
-  ABDynamoProps,
-  ABDynamoConfig,
+  DynamoProps,
+  DynamoConfig,
   DYNAMO_ENVIRONMENTS_PROPS,
   DynamoAlarmThresholds,
 } from './dynamo.default.props';
 
-export class ABDynamoTable extends ABConstruct<TableV2> {
+/**
+ * DynamoDB table construct with built-in CloudWatch alarms, IAM grants, and production
+ * validations (point-in-time recovery, deletion protection).
+ *
+ * @example
+ * ```typescript
+ * const table = new DynamoTable(this, 'orders', config, {
+ *   default: { partitionKey: { name: 'pk', type: AttributeType.STRING } },
+ * });
+ * table.grantPolicies(serviceAccountRole.getRole());
+ * table.setCloudWatchAlarms(alarmAction);
+ * ```
+ */
+export class DynamoTable extends BaseConstruct<TableV2> {
   protected readonly resource: TableV2;
   readonly tableName: string;
   readonly tableProps: TablePropsV2;
@@ -34,29 +47,29 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
   constructor(
     scope: Construct,
     tableName: string,
-    config: ABConfig,
-    dynamoProps: ABEnvProps<ABDynamoProps>,
-    dynamoConfig?: ABEnvProps<ABDynamoConfig>,
+    config: BaseConfig,
+    dynamoProps: BaseEnvProps<DynamoProps>,
+    dynamoConfig?: BaseEnvProps<DynamoConfig>,
   ) {
-    tableName = generateDynamoTableName(tableName, config);
-    super(scope, 'dynamodb', tableName, config);
-    this.tableName = tableName;
-    const constructDynamoProps = ConstructProps.of(dynamoProps, config);
-    const constructDynamoConfig = ConstructProps.of(
+    const resolvedTableName = dynamoTableName(tableName, config);
+    super(scope, 'dynamodb', resolvedTableName, config);
+    this.tableName = resolvedTableName;
+    const resolvedProps = resolveEnvProps(dynamoProps, config);
+    const resolvedConfig = resolveAndMergeEnvProps(
       DYNAMO_ENVIRONMENTS_PROPS,
       config,
+      dynamoConfig,
     );
     this.tableProps = this.buildTableProps(
-      constructDynamoProps.getProps(),
-      constructDynamoConfig.getMergedPropsFromIfABEnvProps(dynamoConfig),
+      resolvedProps,
+      resolvedConfig,
       this.tableName,
     );
-    this.alarmsThresholds =
-      constructDynamoConfig.getMergedPropsFromIfABEnvProps(dynamoConfig);
+    this.alarmsThresholds = resolvedConfig;
     this.validateProps();
     this.resource = new TableV2(
       this,
-      generateConstructId(config.stackName, 'dynamodb', tableName),
+      constructId(config.stackName, 'dynamodb', tableName),
       this.tableProps,
     );
   }
@@ -70,8 +83,8 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
    * @returns The TablePropsV2 object.
    */
   private buildTableProps(
-    dynamoProps: ABDynamoProps,
-    dynamoConfig: ABDynamoConfig,
+    dynamoProps: DynamoProps,
+    dynamoConfig: DynamoConfig,
     tableName: string,
   ): TablePropsV2 {
     return {
@@ -88,7 +101,7 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
    */
   protected validateProps(): void {
     const validationErrors: string[] = [];
-    if (this.config.abEnv === 'prod') {
+    if (this.config.stackEnv === 'prod') {
       if (
         this.tableProps.pointInTimeRecovery === false ||
         this.tableProps.pointInTimeRecovery === undefined
@@ -106,6 +119,11 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
         );
       }
     }
+    if (validationErrors.length > 0) {
+      this.node.addValidation({
+        validate: () => validationErrors,
+      });
+    }
   }
 
   /**
@@ -120,10 +138,10 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
    * Outputs the ARN of the DynamoDB table.
    */
   public outputArn(): void {
-    const exportName = this.config.stackName + '-' + this.tableName + '-id';
+    const exportName = arnExportName(this.resourceName);
     new CfnOutput(this, exportName, {
       value: this.resource.tableArn,
-      exportName: exportName,
+      exportName,
       description: `The ARN of the DynamoDB table ${this.tableName}`,
     });
   }
@@ -131,20 +149,15 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
    * Sets up CloudWatch alarms for the DynamoDB table.
    *
    * The default alarms created are for consumed read capacity units, consumed write capacity units, and throttled requests.
-   * Both consumed read and write capacity units have a threshold defined in ABDynamoConfig.
+   * Both consumed read and write capacity units have a threshold defined in DynamoConfig.
    *
-   * If you are not using the default capacity for given environment, you MUST set the alarm thresholds in the ABDynamoConfig. For Provisioned capacity mode, you should set the alarm thresholds to 80% of the provisioned capacity. For On-Demand capacity mode, you should set the alarm thresholds to a maximum capacity defined by your workflow.
+   * If you are not using the default capacity for given environment, you MUST set the alarm thresholds in the DynamoConfig. For Provisioned capacity mode, you should set the alarm thresholds to 80% of the provisioned capacity. For On-Demand capacity mode, you should set the alarm thresholds to a maximum capacity defined by your workflow.
    * You can always define custom alarms by calling the setCustomAlarms method.
    * @param alarmActions - The actions to be taken when an alarm is triggered (Optional).
    */
   public setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    const alarmReadCapacityUnits = new Alarm(
-      this,
-      generateAlarmConstructId(
-        this.config.stackName,
-        this.resourceName,
-        'consumed-read-capacity',
-      ),
+    this.createAlarm(
+      'consumed-read-capacity',
       {
         metric: this.resource.metricConsumedReadCapacityUnits({
           period: Duration.minutes(1),
@@ -158,41 +171,29 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
         evaluationPeriods: 3,
         datapointsToAlarm: 3,
         treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
       },
+      ...alarmActions,
     );
-    this.setAlarmActions(alarmReadCapacityUnits, ...alarmActions);
-    const alarmWriteCapacityUnits = new Alarm(
-      this,
-      generateAlarmConstructId(
-        this.config.stackName,
-        this.resourceName,
-        'consumed-write-capacity',
-      ),
+    this.createAlarm(
+      'consumed-write-capacity',
       {
         metric: this.resource.metricConsumedWriteCapacityUnits({
           period: Duration.minutes(1),
           statistic: Stats.SUM,
         }),
         alarmName: `${this.resourceName} Consumed Write Capacity Units Alarm`,
-        alarmDescription: `Alarm if ${this.resourceName} consumed write capacity units exceed exceed ${this.alarmsThresholds.alarmReadThreshold} units`,
+        alarmDescription: `Alarm if ${this.resourceName} consumed write capacity units exceed ${this.alarmsThresholds.alarmWriteThreshold} units`,
         threshold: this.alarmsThresholds.alarmWriteThreshold,
         comparisonOperator:
           ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         evaluationPeriods: 3,
         datapointsToAlarm: 3,
         treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
       },
+      ...alarmActions,
     );
-    this.setAlarmActions(alarmWriteCapacityUnits, ...alarmActions);
-    const alarmThrottledRequests = new Alarm(
-      this,
-      generateAlarmConstructId(
-        this.config.stackName,
-        this.resourceName,
-        'throttled-requests',
-      ),
+    this.createAlarm(
+      'throttled-requests',
       {
         metric: this.resource.metricThrottledRequestsForOperation(
           'ThrottledRequests',
@@ -209,10 +210,9 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
         evaluationPeriods: 2,
         datapointsToAlarm: 1,
         treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
       },
+      ...alarmActions,
     );
-    this.setAlarmActions(alarmThrottledRequests, ...alarmActions);
   }
   /**
    * Grants read and write access to the DynamoDB table to the specified IAM role.
@@ -268,9 +268,5 @@ export class ABDynamoTable extends ABConstruct<TableV2> {
     removalPolicy: RemovalPolicy.DESTROY | RemovalPolicy.RETAIN,
   ): void {
     this.resource.applyRemovalPolicy(removalPolicy);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected addPolicyStatements(...statements: PolicyStatement[]): void {
-    throw new Error('Method not implemented.');
   }
 }

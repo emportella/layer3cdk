@@ -1,18 +1,18 @@
-# @appyboard/cdk-constructs
+# Layer3CDK
 
-[![Integration](https://github.com/ApplyBoard/cdk-constructs/actions/workflows/integration.yml/badge.svg)](https://github.com/ApplyBoard/cdk-constructs/actions/workflows/integration.yml)
-[![Package](https://github.com/ApplyBoard/cdk-constructs/actions/workflows/package.yml/badge.svg)](https://github.com/ApplyBoard/cdk-constructs/actions/workflows/package.yml)
+[![Integration](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml/badge.svg)](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml)
+[![npm version](https://img.shields.io/npm/v/layer3cdk.svg)](https://www.npmjs.com/package/layer3cdk)
 
-centralized location for managing and maintaining the CDK constructs and libraries
+Layer3CDK - L3 patterns for AWS CDK
 
 ## Installation
 
 ```sh
-$ npm i @appyboard/cdk-constructs
+$ npm i layer3cdk
 ```
 ## How to work with this project
 
-Check the [CDK-Constructs Contributing Guide](./CONTRIBUTING.md) for more information.
+Check the [Layer3CDK Contributing Guide](./CONTRIBUTING.md) for more information.
 
 ## Change Log
 
@@ -20,7 +20,7 @@ Check the [CDK-Constructs Contributing Guide](./CONTRIBUTING.md) for more inform
 
 ## Index
 
-### 1. [Common](./src/common/README.md)
+### 1. [Core](./src/core/README.md)
 ### 2. [Config](./src/config/README.md)
 ### 3. [IAM](./src/iam/README.md)
 ### 4. [SNS](./src/sns/README.md)

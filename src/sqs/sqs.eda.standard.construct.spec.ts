@@ -3,17 +3,17 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { FilterOrPolicy, SubscriptionFilter, Topic } from 'aws-cdk-lib/aws-sns';
-import { ABConfig, generateConstructId } from '../common';
+import { BaseConfig, constructId } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
   EDAStandardQueue,
   EDAStandardQueueFifo,
 } from './sqs.eda.standard.construct';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
 describe('EDAStandardQueue', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let dlq: DLQ;
   let dlqFifo: DLQFifo;
   let standardQueue: EDAStandardQueue;
@@ -24,7 +24,7 @@ describe('EDAStandardQueue', () => {
   beforeEach(() => {
     stack = new Stack();
     eventName = 'TestEventCreated';
-    config = testAbConfig;
+    config = testconfig;
     dlq = new DLQ(stack, config);
     standardQueue = new EDAStandardQueue(
       stack,
@@ -34,11 +34,7 @@ describe('EDAStandardQueue', () => {
     );
     standardQueueRef = stack.getLogicalId(
       stack.node.findChild(
-        generateConstructId(
-          config.stackName,
-          'sqs',
-          standardQueue.resourceName,
-        ),
+        constructId(config.stackName, 'sqs', standardQueue.resourceName),
       ).node.defaultChild as CfnElement,
     );
     dlqFifo = new DLQFifo(stack, config);

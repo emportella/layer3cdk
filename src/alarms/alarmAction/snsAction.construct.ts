@@ -1,15 +1,8 @@
-import { RemovalPolicy } from 'aws-cdk-lib';
-import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
-import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { ITopic, Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import {
-  ABConfig,
-  ABConstruct,
-  generateConstructId,
-  generateSnsActionTopicName,
-} from '../../common';
+import { BaseConfig, BaseConstruct, constructId } from '../../core';
+import { alarmTopicName } from '../alarms.name.conventions';
 import { AlarmActionMap, AlarmActionType } from './alarmActions.constants';
 
 /**
@@ -17,18 +10,20 @@ import { AlarmActionMap, AlarmActionType } from './alarmActions.constants';
  * This construct is used to manage SNS actions for CloudWatch alarms, created elsewhere.
  * @constructor
  * @param scope - The parent construct (Construct).
- * @param config - The configuration object (ABConfig).
+ * @param config - The configuration object (BaseConfig).
  * @param snsArns - The ARNs of the SNS topics to associate with the SNS actions (AlarmActionMap)
  */
-export default class ABSnsAction extends ABConstruct<Map<string, SnsAction>> {
+export default class AlarmSnsAction extends BaseConstruct<
+  Map<string, SnsAction>
+> {
   protected resource: Map<string, SnsAction> = new Map();
   private topic: ITopic[];
 
-  constructor(scope: Construct, config: ABConfig, snsArns: AlarmActionMap) {
+  constructor(scope: Construct, config: BaseConfig, snsArns: AlarmActionMap) {
     super(
       scope,
       'sns-cwaction',
-      generateSnsActionTopicName(config.abEnv, config.domain),
+      alarmTopicName(config.stackEnv, config.domain),
       config,
     );
     this.topic = [];
@@ -36,7 +31,7 @@ export default class ABSnsAction extends ABConstruct<Map<string, SnsAction>> {
       if (value) {
         const topic = Topic.fromTopicArn(
           scope,
-          generateConstructId(config.stackName, 'sns-cwaction', `topic-${key}`),
+          constructId(config.stackName, 'sns-cwaction', `topic-${key}`),
           value,
         ) as Topic;
         this.topic.push(topic);
@@ -80,37 +75,5 @@ export default class ABSnsAction extends ABConstruct<Map<string, SnsAction>> {
    */
   public getArns(): string[] {
     return this.topic.flatMap((topic) => topic.topicArn);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected getArn(): string {
-    throw new Error('Method not implemented.');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected outputArn(): void {
-    throw new Error('Method not implemented.');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected grantPolicies(iamRole: Role): void {
-    throw new Error('Method not implemented.');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected addPolicyStatements(...statements: PolicyStatement[]): void {
-    throw new Error('Method not implemented.');
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    throw new Error('Method not implemented.');
-  }
-
-  protected resourceRemovalPolicy(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    removalPolicy: RemovalPolicy.DESTROY | RemovalPolicy.RETAIN,
-  ): void {
-    throw new Error('Method not implemented.');
   }
 }

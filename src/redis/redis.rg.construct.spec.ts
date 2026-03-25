@@ -1,16 +1,17 @@
 import { Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { ABConfig, generateRedisClusterName } from '../common';
+import { BaseConfig } from '../core';
+import { redisClusterName } from './redis.name.conventions';
 import {
   RedisReplicationGroup,
   RedisReplicationGroupProps,
 } from './redis.rg.construct';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 import { RedisReplicationGroupConfig } from './redis.rg.default.props';
 
 describe('RedisReplicationGroup', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
 
   const redisProps: RedisReplicationGroupProps = {
     subnets: [{ id: 'subnet1' }, { id: 'subnet1' }],
@@ -36,19 +37,19 @@ describe('RedisReplicationGroup', () => {
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
 
     new RedisReplicationGroup(stack, config, envRedisProps, envRedisConfig);
   });
 
   it('should create one replication group with the correct id', () => {
-    const { abEnv, serviceName, domain } = config;
+    const { stackEnv, serviceName, domain } = config;
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::ElastiCache::ReplicationGroup', 1);
     template.resourceCountIs('AWS::ElastiCache::SubnetGroup', 1);
 
-    const groupId = generateRedisClusterName({
-      abEnv: abEnv,
+    const groupId = redisClusterName({
+      env: stackEnv,
       domain: domain,
       serviceName,
     });
@@ -97,7 +98,7 @@ describe('RedisReplicationGroup', () => {
   });
 
   it('should create resources with expected properties in Production', () => {
-    const prodConfig = new ABConfig(
+    const prodConfig = new BaseConfig(
       config.domain,
       config.env,
       config.stackName,

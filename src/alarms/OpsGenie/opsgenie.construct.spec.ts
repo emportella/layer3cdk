@@ -1,19 +1,18 @@
 import { Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { ABConfig, generateOutputArnExportName } from '../../common';
+import { BaseConfig, arnExportName } from '../../core';
 import { OpsGenie, OpsGenieApiKeys } from './opsgenie.construct';
-import { testAbConfig } from '../../test/common.test.const';
+import { testconfig } from '../../test/common.test.const';
 
 describe('OpsGenie', () => {
   let stack: Stack;
-  let config: ABConfig;
-  let opsgenie: OpsGenie;
+  let config: BaseConfig;
   let template: Template;
   let apiKeys: OpsGenieApiKeys;
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
     apiKeys = {
       dev: 'devApiKey',
       prod: 'prodApiKey',
@@ -21,7 +20,7 @@ describe('OpsGenie', () => {
       perf: 'perfApiKey',
     };
 
-    opsgenie = new OpsGenie(stack, apiKeys, config);
+    new OpsGenie(stack, apiKeys, config);
     template = Template.fromStack(stack);
   });
   it('Should create an SNS topic for OpsGenie', () => {
@@ -59,8 +58,11 @@ describe('OpsGenie', () => {
     });
   });
   it('Should output the ARN of the OpsGenie SNS topic', () => {
-    const exportName = generateOutputArnExportName(opsgenie.resourceName);
-    template.hasOutput('*', {
+    const outputStack = new Stack();
+    const opsgenieWithOutput = new OpsGenie(outputStack, apiKeys, config);
+    opsgenieWithOutput.outputArn();
+    const exportName = arnExportName(opsgenieWithOutput.resourceName);
+    Template.fromStack(outputStack).hasOutput('*', {
       Export: {
         Name: exportName,
       },

@@ -1,27 +1,53 @@
-import { ABConfig } from '../common';
-import { testAbConfig } from '../test/common.test.const';
-import { ABEksClusterConfig } from './config.eks.cluster';
+import { BaseConfig } from '../core';
+import { testconfig } from '../test/common.test.const';
+import { EksClusterConfig } from './config.eks.cluster';
 
-describe('ABEksClusterConfig', () => {
-  let config: ABConfig;
-  let eksClusterConfig: ABEksClusterConfig;
+describe('EksClusterConfig', () => {
+  let config: BaseConfig;
+  let eksClusterConfig: EksClusterConfig;
+
+  const oidcProviderArns = {
+    dev: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/DEV_CLUSTER',
+    perf: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PERF_CLUSTER',
+    preprod:
+      'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PREPROD_CLUSTER',
+    prod: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PROD_CLUSTER',
+  };
 
   beforeEach(() => {
-    config = testAbConfig;
-    eksClusterConfig = new ABEksClusterConfig(undefined as any, config);
+    config = testconfig;
+    eksClusterConfig = new EksClusterConfig(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      undefined as any,
+      config,
+      oidcProviderArns,
+    );
   });
 
   it('should return the OIDC provider ARN for the EKS cluster', () => {
-    const expectedArn =
-      'arn:aws:iam::649614366484:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/6B4AF37861BB13CC3F815F3BA5146999';
     const oidcProviderArn = eksClusterConfig.getOidcProviderArn();
-
-    expect(oidcProviderArn).toBe(expectedArn);
+    expect(oidcProviderArn).toBe(oidcProviderArns.dev);
   });
 
-  it('should return the EKS cluster name', () => {
-    const expectedNameSpace = '*';
+  it('should return the default namespace rule', () => {
     const namespace = eksClusterConfig.getNameSpaceRule();
-    expect(namespace).toBe(expectedNameSpace);
+    expect(namespace).toBe('*');
+  });
+
+  it('should use custom namespace rules when provided', () => {
+    const customRules = {
+      dev: 'custom-ns',
+      perf: 'perf-ns',
+      preprod: 'pre-ns',
+      prod: 'prod-ns',
+    };
+    const configWithCustomRules = new EksClusterConfig(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      undefined as any,
+      config,
+      oidcProviderArns,
+      customRules,
+    );
+    expect(configWithCustomRules.getNameSpaceRule()).toBe('custom-ns');
   });
 });

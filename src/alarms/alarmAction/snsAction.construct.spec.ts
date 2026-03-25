@@ -1,30 +1,32 @@
 import { Stack } from 'aws-cdk-lib';
-import { ABConfig } from '../../common';
-import ABSnsAction from './snsAction.construct';
-import { testAbConfig } from '../../test/common.test.const';
+import { BaseConfig } from '../../core';
+import AlarmSnsAction from './snsAction.construct';
+import { testconfig } from '../../test/common.test.const';
 
 describe('SNSAction', () => {
   let stack: Stack;
-  let config: ABConfig;
-  let snsAction: ABSnsAction;
+  let config: BaseConfig;
+  let snsAction: AlarmSnsAction;
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
   });
   it('should create an SNS action construct', () => {
-    snsAction = new ABSnsAction(stack, config, {
+    snsAction = new AlarmSnsAction(stack, config, {
       opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
     });
     expect(snsAction).toBeDefined();
   });
-  it('should create an SNS action construct', () => {
-    snsAction = new ABSnsAction(stack, config, {
+  it('should return the map of SNS actions', () => {
+    snsAction = new AlarmSnsAction(stack, config, {
       opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
     });
-    expect(snsAction).toBeDefined();
+    const actionsMap = snsAction.getMapSnsActions();
+    expect(actionsMap.size).toEqual(1);
+    expect(actionsMap.has('opsGenie')).toBe(true);
   });
   it('should retrieve the SNS action for the specified alarm action type', () => {
-    snsAction = new ABSnsAction(stack, config, {
+    snsAction = new AlarmSnsAction(stack, config, {
       opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
     });
     const snsActionType = 'opsGenie';
@@ -32,7 +34,7 @@ describe('SNSAction', () => {
     expect(retrievedSnsAction).toBeDefined();
   });
   it('should retrieve the ARNs of the SNS topics associated with this construct', () => {
-    snsAction = new ABSnsAction(stack, config, {
+    snsAction = new AlarmSnsAction(stack, config, {
       opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
     });
     const snsTopicArns = snsAction.getArns();

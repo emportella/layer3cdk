@@ -1,51 +1,46 @@
 /**
- * Represents the tags used in ApplyBoard applications.
+ * Represents the tags used in Layer3CDK applications.
  */
-import { ABEnvironment, Domain } from './ab.constant';
+import { StackEnv, Domain } from './constants';
 
 /**
- * Represents the ApplyBoard tags.
+ * Represents the Layer3CDK tags.
  */
-export type ABTags = {
+export type ResourceTags = {
   /**
    * Represents the department ownership tag.
    */
-  'ab:ownership:department': Departments;
+  'tag:ownership:department': Departments;
   /**
    * Represents the organization domain ownership tag.
    */
-  'ab:ownership:orgDomain'?: Domain;
+  'tag:ownership:orgDomain'?: Domain;
   /**
    * Represents the team ownership tag.
    */
-  'ab:ownership:team': string;
+  'tag:ownership:team': string;
   /**
    * Represents the application technology tag.
    */
-  'ab:tech:application'?: string;
+  'tag:tech:application'?: string;
   /**
    * Represents the repository technology tag.
    */
-  'ab:tech:repository'?: string;
+  'tag:tech:repository'?: string;
   /**
    * Represents the managed by tag.
    */
-  'ab:tech:managedBy'?: ManagedBy;
+  'tag:tech:managedBy'?: ManagedBy;
   /**
    * Represents the environment tag.
    */
-  'ab:env': ABEnvironment;
+  'tag:env': StackEnv;
   /**
    * Represents the tag schema version.
-   * Implements https://applyboard.atlassian.net/wiki/spaces/PA/pages/3014689587/ApplyBoard+Tag+Schema+Version+0.x
+   * Implements
    */
-  'ab:tagSchemaVersion': typeof tagSchemaVersion;
+  'tag:tagSchemaVersion': '0.1';
 };
-
-/**
- * Represents the tag schema version.
- */
-const tagSchemaVersion = '0.1';
 
 /**
  * Represents the managed by options.
@@ -61,7 +56,7 @@ export type Departments =
   | 'security'
   | 'infrastructure'
   | 'applyproof'
-  | 'abSolutions'
+  | 'solutions'
   | 'support'
   | 'sales'
   | 'marketing'

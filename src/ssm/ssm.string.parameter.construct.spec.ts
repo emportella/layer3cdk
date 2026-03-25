@@ -1,17 +1,18 @@
 import { CfnElement, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { ABConfig, generateSSMStringParameterName } from '../common';
+import { BaseConfig } from '../core';
+import { ssmParameterName } from './ssm.name.conventions';
 import {
   DomainSSMStringParameter,
   GlobalSSMStringParameter,
   ServiceSSMStringParameter,
 } from './ssm.string.parameter.construct';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
 describe('SSMStringParameter', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let ssmStringParameter:
     | GlobalSSMStringParameter
     | DomainSSMStringParameter
@@ -24,7 +25,7 @@ describe('SSMStringParameter', () => {
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
   });
 
   describe('GlobalSSMStringParameter', () => {
@@ -36,12 +37,12 @@ describe('SSMStringParameter', () => {
         config,
       );
 
-      parameterName = generateSSMStringParameterName(
+      parameterName = ssmParameterName(
         param.name,
         config.serviceName,
         config.domain,
         'global',
-        config.abEnv,
+        config.stackEnv,
       );
     });
 
@@ -76,12 +77,12 @@ describe('SSMStringParameter', () => {
         config,
       );
 
-      parameterName = generateSSMStringParameterName(
+      parameterName = ssmParameterName(
         param.name,
         config.serviceName,
         config.domain,
         'domain',
-        config.abEnv,
+        config.stackEnv,
       );
     });
 
@@ -116,12 +117,12 @@ describe('SSMStringParameter', () => {
         config,
       );
 
-      parameterName = generateSSMStringParameterName(
+      parameterName = ssmParameterName(
         param.name,
         config.serviceName,
         config.domain,
         'service',
-        config.abEnv,
+        config.stackEnv,
       );
     });
 

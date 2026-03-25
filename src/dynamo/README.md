@@ -2,16 +2,16 @@
 
 Provides a construct for creating a DynamoDB table.
 
-## ABDynamoTable
-`ABDynamoTable` is a construct that creates a DynamoDB table with the specified properties.
+## DynamoTable
+`DynamoTable` is a construct that creates a DynamoDB table with the specified properties.
 
 ### Properties
 
 We choose to break down the properties of the original aws-cdk DynamoDB properties `TablePropsV2` into two categories: Configurations and Properties. That was done to separate the properties that are used to configure the table from the properties that are used to define the table.
 
-- `ABDynamoConfig` - Configuration properties for the table.
+- `DynamoConfig` - Configuration properties for the table.
   - That is an _*Optional*_ property that can be used to configure the table.
-  - The Default values are defined as the ideal configuration for a DynamoDB table for Applyboard
+  - The Default values are defined as the ideal configuration for a DynamoDB table for Layer3CDK
   - This is a subset of the `TablePropsV2` properties and handles the following properties:
     - `tableClass`
     - `billing`
@@ -25,7 +25,7 @@ We choose to break down the properties of the original aws-cdk DynamoDB properti
     - `kinesisStream`
     - `tags`
   - Besides the above properties, we also have the following properties: `alarmReadThreshold` and `alarmWriteThreshold`. 
-- `ABDynamoProps` - Properties that define the table.
+- `DynamoProps` - Properties that define the table.
   - This is a required property that is used to define the table.
   - This is a subset of the `TablePropsV2` properties and handles the following properties:
     - `partitionKey`
@@ -37,12 +37,12 @@ We choose to break down the properties of the original aws-cdk DynamoDB properti
 ### Example
 
 As the DynamoDB is a complex and costly resource, we have defined different configurations for different environments. 
-Both "Props" need to be created using the `ABEnvProps` for defining different environments. The following example shows how to create a DynamoDB table with the ideal configuration for a DynamoDB table for Applyboard, where prod has a different configuration for billing.
+Both "Props" need to be created using the `BaseEnvProps` for defining different environments. The following example shows how to create a DynamoDB table with the ideal configuration for a DynamoDB table for Layer3CDK, where prod has a different configuration for billing.
 
 ```typescript
- // DynamoDB Table - creates a simple DynamoDB table with a partition key and a field to store the TTL, which is used to delete the items after a certain time. Default configuration is used for dev and preprod, and prod has a different configuration for billing. As the the `ABEnvProds.default` is required we pass the required properties for ABDynamoConfig which are `alarmReadThreshold` and `alarmWriteThreshold`.
+ // DynamoDB Table - creates a simple DynamoDB table with a partition key and a field to store the TTL, which is used to delete the items after a certain time. Default configuration is used for dev and preprod, and prod has a different configuration for billing. As the the `BaseEnvProps.default` is required we pass the required properties for DynamoConfig which are `alarmReadThreshold` and `alarmWriteThreshold`.
   const tableName = 'ProcessedApplicationDomainEvents';
-    const envDynamoProps: ABEnvProps<ABDynamoProps> = {
+    const envDynamoProps: BaseEnvProps<DynamoProps> = {
       default: {
         partitionKey: { // That is required field and represents the primary key of the table
           name: 'table-name',
@@ -52,7 +52,7 @@ Both "Props" need to be created using the `ABEnvProps` for defining different en
       },
     };
 
-    const envDynamoConfig: ABEnvProps<ABDynamoConfig> = {
+    const envDynamoConfig: BaseEnvProps<DynamoConfig> = {
       default: {
         alarmReadThreshold: 20,
         alarmWriteThreshold: 20,
@@ -63,7 +63,7 @@ Both "Props" need to be created using the `ABEnvProps` for defining different en
         alarmWriteThreshold: 100,
       },
     };
-    const dynamotable = new ABDynamoTable(
+    const dynamotable = new DynamoTable(
       this,
       tableName,
       this.config,

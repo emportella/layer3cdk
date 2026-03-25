@@ -20,9 +20,9 @@ The constructor handles all the naming and configurations needed for the DLQ. Th
 CloudWatch Alarms are set to trigger more than 0 messages.
 
 ```typescript
-import { DLQ } from '@applyboard/cdk-constructs';
+import { DLQ } from 'layer3cdk';
 
-    const dlq = new DLQ(scope, abConfig);
+    const dlq = new DLQ(scope, config);
     dlq.setCloudWatchAlarms(snsAction); // optional sns action until implemented.
   
 ```
@@ -32,10 +32,10 @@ A FIFO Queue requires a DLQ with the same properties. The [DLQFifo](./sqs.dlq.co
 This DLQ can be created for service and be the same for all FIFO queues in the service, or optionally you can create a DLQ for a specific FIFO Queue by passing the Event Name to the constructor.
 
 ```typescript
-import { DLQFifo } from '@applyboard/cdk-constructs';
+import { DLQFifo } from 'layer3cdk';
 
-    const dlq = new DLQFifo(scope, abConfig);// As a generic Fifo DLQ for the service
-    const dlq = new DLQFifo(scope, abConfig, 'TaskCreated');// As a specific Fifo DLQ for a specific event
+    const dlq = new DLQFifo(scope, config);// As a generic Fifo DLQ for the service
+    const dlq = new DLQFifo(scope, config, 'TaskCreated');// As a specific Fifo DLQ for a specific event
     
 ```
 > [!NOTE]
@@ -57,17 +57,17 @@ Important:
 3. And subscribe the queue to an SNS topic.
 
 ```typescript
-import { EDAStandardQueue } from '@applyboard/cdk-constructs';
+import { EDAStandardQueue } from 'layer3cdk';
 
     const taskCreatedStQueue = new EDAStandardQueue(
       scope,
       'TaskCreated',//event name
       dlq, // instance of the service DLQ
-      abConfig
+      config
     );
     taskCreatedStQueue.setCloudWatchAlarms(snsAction); // optional sns action until implemented.
     //subscribe the queue from a Topic ARN exported from another stack*
-    //Common package has `generateOutputArnExportName` method that can help dynamically define the export name for the resource
+    //Core package has `arnExportName` method that can help dynamically define the export name for the resource
      taskCreatedStQueue.subscribeFromSNSTopicImport(
       '<Value exported from the SNS topic>',
     );
@@ -85,13 +85,13 @@ This Queue is only intended to be used for background tasks where the producer a
 
 ##### Usage
 ```typescript
-import { EDASqsBackgroundTasks } from '@applyboard/cdk-constructs';
+import { EDASqsBackgroundTasks } from 'layer3cdk';
 
     const taskCreatedBgQueue = new EDASqsBackgroundTasks(
       scope,
       'TaskCreated',//event name
       dlq, // instance of the service DLQ
-      abConfig
+      config
     );
     taskCreatedBgQueue.setCloudWatchAlarms(snsAction); // 
     //Don't forget to grant the service account to publish and consume from the queue
@@ -109,13 +109,13 @@ This Queue is intended to be used for a fan-in strategy where multiple services 
 ##### Usage
 ```typescript
 
-import { EDAFaninQueue } from '@applyboard/cdk-constructs';
+import { EDAFaninQueue } from 'layer3cdk';
 
     const taskCreatedFaninQueue = new EDAFaninQueue(
       scope,
       'SendNotification',//event name
       dlq, // instance of the service DLQ
-      abConfig
+      config
     );
     
     taskCreatedFaninQueue.grantPolicies(serviceAccountRole);
@@ -131,7 +131,7 @@ import { EDAFaninQueue } from '@applyboard/cdk-constructs';
       ],
       this.config.env.region ?? '',
       this.config.env.account ?? '',
-      this.config.abEnv,
+      this.config.env,
     );
 ```
 ____________________________________________________

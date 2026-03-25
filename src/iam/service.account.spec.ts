@@ -1,35 +1,31 @@
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Capture, Template } from 'aws-cdk-lib/assertions';
-import { ABConfig, generateServiceAccountRoleName } from '../common';
+import { BaseConfig } from '../core';
+import { serviceAccountRoleName } from './iam.name.conventions';
 import { ServiceAccountRole } from './service.account';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
-describe('EDASns', () => {
+describe('ServiceAccountRole', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let roleName: string;
   let role: ServiceAccountRole;
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
-    role = new ServiceAccountRole(stack, config);
-    roleName = generateServiceAccountRoleName(config.serviceName, config.abEnv);
+    config = testconfig;
+    role = new ServiceAccountRole(stack, config, {
+      dev: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/DEV_CLUSTER',
+      perf: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PERF_CLUSTER',
+      preprod:
+        'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PREPROD_CLUSTER',
+      prod: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PROD_CLUSTER',
+    });
+    roleName = serviceAccountRoleName(config.serviceName, config.stackEnv);
   });
   it('should create a role with the correct name', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
       RoleName: roleName,
-    });
-  });
-  it('should create a role with the right Action', () => {
-    Template.fromStack(stack).hasResourceProperties('AWS::IAM::Role', {
-      AssumeRolePolicyDocument: {
-        Statement: [
-          {
-            Action: 'sts:AssumeRoleWithWebIdentity',
-          },
-        ],
-      },
     });
   });
   it('should create a role with the right Action', () => {

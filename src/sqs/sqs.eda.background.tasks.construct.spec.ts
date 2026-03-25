@@ -3,17 +3,17 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { ABConfig, generateConstructId } from '../common';
+import { BaseConfig, constructId } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
   EDABackgroundTasksQueue,
   EDABackgroundTasksQueueFifo,
 } from './sqs.eda.background.tasks.construct';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
 describe('EDABackgroundTasksQueue', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let dlq: DLQ;
   let dlqfifo: DLQFifo;
   let backgroundTaskQueue: EDABackgroundTasksQueue;
@@ -24,7 +24,7 @@ describe('EDABackgroundTasksQueue', () => {
   beforeEach(() => {
     stack = new Stack();
     eventName = 'TestEventCreated';
-    config = testAbConfig;
+    config = testconfig;
     dlq = new DLQ(stack, config);
     dlqfifo = new DLQFifo(stack, config);
     backgroundTaskQueue = new EDABackgroundTasksQueue(
@@ -35,11 +35,7 @@ describe('EDABackgroundTasksQueue', () => {
     );
     backgroundTaskQueueRef = stack.getLogicalId(
       stack.node.findChild(
-        generateConstructId(
-          config.stackName,
-          'sqs',
-          backgroundTaskQueue.resourceName,
-        ),
+        constructId(config.stackName, 'sqs', backgroundTaskQueue.resourceName),
       ).node.defaultChild as CfnElement,
     );
     backgroundTaskQueueFifo = new EDABackgroundTasksQueueFifo(

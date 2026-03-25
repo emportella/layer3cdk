@@ -1,27 +1,27 @@
 import { Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { ABConfig } from '../../common';
+import { BaseConfig } from '../../core';
 import {
   ChatbotSlackChannelIds,
   ChatbotSlackChannnel,
 } from './chatbot.construct';
-import { testAbConfig } from '../../test/common.test.const';
+import { testconfig } from '../../test/common.test.const';
 
 describe('Chatbot', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let channelIds: ChatbotSlackChannelIds;
   let template: Template;
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
     channelIds = {
       dev: 'dev-channel-id',
       preprod: 'preprod-channel-id',
       perf: 'perf-channel-id',
       prod: 'prod-channel-id',
     };
-    new ChatbotSlackChannnel(stack, channelIds, config);
+    new ChatbotSlackChannnel(stack, channelIds, config, 'SLACK1234CINCO');
     template = Template.fromStack(stack);
   });
   it('Should create a chatbot', () => {
@@ -30,7 +30,7 @@ describe('Chatbot', () => {
       Match.objectLike({
         ConfigurationName: 'dev-rpj-chatBot-slack-alarm',
         SlackChannelId: 'dev-channel-id',
-        SlackWorkspaceId: 'T04TK4S51',
+        SlackWorkspaceId: 'SLACK1234CINCO',
       }),
     );
   });

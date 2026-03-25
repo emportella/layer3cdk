@@ -1,9 +1,0 @@
-# Snyk (https://snyk.io) policy file
-
-exclude:
-  global:
-    - test/**
-    - **/__tests__/**
-    - "**/*.spec.*"
-    - "**/*.test.*"
-    - "**\\.spec\\.[jt]s"

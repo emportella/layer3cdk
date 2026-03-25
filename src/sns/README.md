@@ -6,9 +6,9 @@ All SNS-related constructs should be built in this package.
 EDASns is an [SNS Topic](./sns.eda.construct.ts) that can be used for event-driven architecture. The constructor handles all the naming and configurations needed for the topic.
 
 ```typescript
-import { EDASns } from '@applyboard/cdk-constructs';
+import { EDASns } from 'layer3cdk';
 
-const taskCreatedSNS = new EDASns(scope, 'TaskCreated', AbConfig);
+const taskCreatedSNS = new EDASns(scope, 'TaskCreated', config);
 taskCreatedSNS.setCloudWatchAlarms(snsAction);// optional sns action until implemented.
 taskCreatedSNS.outputArn(); // outputs the ARN of the SNS topic to be used in other stacks.
 taskCreatedSNS.grantPolicies(serviceAccountRole); // grants the service account to publish to the topic.

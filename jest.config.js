@@ -1,4 +1,5 @@
 module.exports = {
+  maxWorkers: 2,
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: 'src',
   testRegex: '.*\\.spec\\.ts$',
@@ -10,10 +11,10 @@ module.exports = {
   coverageDirectory: '../coverage',
   coverageThreshold: {
     global: {
-      statements: 0,
-      branches: 0,
-      functions: 0,
-      lines: 0,
+      statements: 75,
+      branches: 75,
+      functions: 60,
+      lines: 75,
     },
   },
 };

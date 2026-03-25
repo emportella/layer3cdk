@@ -1,4 +1,4 @@
-import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
+import { CfnOutput } from 'aws-cdk-lib';
 import {
   LoggingLevel,
   SlackChannelConfiguration,
@@ -7,7 +7,6 @@ import {
 import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import {
-  Effect,
   IManagedPolicy,
   ManagedPolicy,
   PolicyStatement,
@@ -18,15 +17,14 @@ import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 import {
-  ABConstruct,
-  ABEnvironment,
-  generateChatBotRoleName,
-  generateConstructId,
-  generateOutputArnExportName,
-  generateSlackConfigurationName,
-  generateSnsActionTopicName,
-} from '../../common';
-import { ABConfig } from '../../common/ab.config';
+  BaseConstruct,
+  StackEnv,
+  constructId,
+  arnExportName,
+} from '../../core';
+import { chatbotRoleName, slackConfigName } from '../alarms.name.conventions';
+import { createAlarmTopic } from '../alarm.topic';
+import { BaseConfig } from '../../core/base.config';
 
 /**
  * Slack channel configuration for AWS Chatbot
@@ -39,10 +37,18 @@ import { ABConfig } from '../../common/ab.config';
  * @see https://docs.aws.amazon.com/chatbot/latest/adminguide/slack-setup.html
  */
 export type ChatbotSlackChannelIds = {
-  [key in ABEnvironment]: string;
+  [key in StackEnv]: string;
 };
 
-export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration> {
+/**
+ * AWS Chatbot Slack channel integration for CloudWatch alarm notifications.
+ * Creates an SNS topic, a Slack channel configuration, and the required IAM role.
+ * Call {@link ChatbotSlackChannnel.getSnsAction} to wire alarms to Slack.
+ *
+ * @param slackChannelIds - Map of Slack channel IDs per environment (dev, perf, preprod, prod).
+ * @param slackWorkspaceId - The Slack workspace ID configured in AWS Chatbot.
+ */
+export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguration> {
   protected readonly resource: SlackChannelConfiguration;
   private readonly defaultProps: SlackChannelConfigurationProps;
   private readonly topic: Topic;
@@ -51,18 +57,19 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
   constructor(
     scope: Construct,
     slackChannelIds: ChatbotSlackChannelIds,
-    config: ABConfig,
+    config: BaseConfig,
+    slackWorkspaceId: string,
   ) {
-    const resourceName = `${config.abEnv}-${config.domain}-chatBot-slack-alarm`;
+    const resourceName = `${config.stackEnv}-${config.domain}-chatBot-slack-alarm`;
     super(scope, 'chatbot', resourceName, config);
     this.topic = this.createTopic(config);
     this.defaultProps = {
-      slackChannelConfigurationName: generateSlackConfigurationName(
-        config.abEnv,
+      slackChannelConfigurationName: slackConfigName(
+        config.stackEnv,
         config.domain,
       ),
       slackChannelId: this.getSlackChannelId(slackChannelIds),
-      slackWorkspaceId: 'T04TK4S51',
+      slackWorkspaceId,
       notificationTopics: [this.topic],
       loggingLevel: LoggingLevel.NONE,
       logRetention: RetentionDays.INFINITE,
@@ -71,7 +78,7 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
     };
     this.resource = new SlackChannelConfiguration(
       scope,
-      generateConstructId(config.stackName, 'chatbot-slack', resourceName),
+      constructId(config.stackName, 'chatbot-slack', resourceName),
       this.defaultProps,
     );
     this.snsAction = new SnsAction(this.topic);
@@ -83,13 +90,13 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
    * @returns string
    */
   private getSlackChannelId(slackChannelIds: ChatbotSlackChannelIds): string {
-    try {
-      return slackChannelIds[this.config.abEnv];
-    } catch (error) {
+    const channelId = slackChannelIds[this.config.stackEnv];
+    if (!channelId) {
       throw new Error(
-        `Slack channel ID is not defined for ${this.config.abEnv} environment`,
+        `Slack channel ID is not defined for ${this.config.stackEnv} environment`,
       );
     }
+    return channelId;
   }
 
   /**
@@ -109,12 +116,12 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
    * Role name: <env>-<domain>-chatbot-slack-role
    * @returns Role
    */
-  private slackChannelRole(scope: Construct, config: ABConfig): Role {
+  private slackChannelRole(scope: Construct, config: BaseConfig): Role {
     return new Role(
       scope,
-      generateConstructId(config.stackName, 'chatbot-slack', 'role'),
+      constructId(config.stackName, 'chatbot-slack', 'role'),
       {
-        roleName: generateChatBotRoleName(config.abEnv, config.domain),
+        roleName: chatbotRoleName(config.stackEnv, config.domain),
         description: 'Chatbot role for Slack channel configuration for ',
         assumedBy: new ServicePrincipal('chatbot.amazonaws.com'),
         managedPolicies: [
@@ -125,27 +132,8 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
     );
   }
 
-  /**
-   * Create the SNS topic for the Slack channel configuration
-   * @returns Topic
-   */
-  private createTopic(config: ABConfig): Topic {
-    const topic = new Topic(
-      this,
-      generateConstructId(config.stackName, 'sns-cwaction', this.resourceName),
-      {
-        topicName: generateSnsActionTopicName(config.abEnv, config.domain),
-      },
-    );
-    topic.addToResourcePolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ['sns:Publish'],
-        resources: [topic.topicArn],
-        principals: [new ServicePrincipal('cloudwatch.amazonaws.com')],
-      }),
-    );
-    return topic;
+  private createTopic(config: BaseConfig): Topic {
+    return createAlarmTopic(this, config, this.resourceName);
   }
 
   /**
@@ -153,7 +141,7 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
    * @param topic
    */
   public outputSNSTopicArn(): void {
-    const exportName = generateOutputArnExportName(this.topic.topicName);
+    const exportName = arnExportName(this.topic.topicName);
     new CfnOutput(this, exportName + '-id', {
       value: this.topic.topicArn,
       exportName: exportName,
@@ -165,7 +153,7 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
    * Get the ARN of the Slack channel configuration
    * @returns string
    * @override
-   * @see ABConstruct
+   * @see BaseConstruct
    */
   public getArn(): string {
     return this.resource.slackChannelConfigurationArn;
@@ -179,35 +167,9 @@ export class ChatbotSlackChannnel extends ABConstruct<SlackChannelConfiguration>
     return this.snsAction;
   }
 
-  /**
-   * Not implemented | ChatbotSlackChannnel does not provide any output
-   */
-  protected outputArn(): void {
-    throw new Error('Method not implemented.');
-  }
-  /**
-   * Not implemented | ChatbotSlackChannnel does not need to grant any policies
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected grantPolicies(iamRole: Role): void {
-    throw new Error('Method not implemented.');
-  }
   addPolicyStatements(...statements: PolicyStatement[]): void {
     statements.forEach((statement) => {
       this.resource.addToRolePolicy(statement);
     });
-  }
-  /**
-   * Not implemented | ChatbotSlackChannnel does not need to set any CloudWatch alarms
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    throw new Error('Method not implemented.');
-  }
-  protected resourceRemovalPolicy(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    removalPolicy: RemovalPolicy.DESTROY | RemovalPolicy.RETAIN,
-  ): void {
-    throw new Error('Method not implemented.');
   }
 }

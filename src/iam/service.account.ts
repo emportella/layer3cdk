@@ -1,5 +1,4 @@
 import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
-import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
 import { OpenIdConnectProvider } from 'aws-cdk-lib/aws-eks';
 import {
   FederatedPrincipal,
@@ -8,29 +7,44 @@ import {
   Role,
 } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
+import { BaseConfig, BaseConstruct, arnExportName, constructId } from '../core';
 import {
-  ABConfig,
-  ABConstruct,
-  generateOutputArnExportName,
-  generateServiceAccountName,
-  generateServiceAccountRoleName,
-  generateConstructId,
-} from '../common';
-import { ABEksClusterConfig } from '../config/config.eks.cluster';
+  serviceAccountName,
+  serviceAccountRoleName,
+} from './iam.name.conventions';
+import { EksClusterConfig } from '../config/config.eks.cluster';
+import { EnvConfig } from '../config/config.interfaces';
 
-export class ServiceAccountRole extends ABConstruct<Role> {
+/**
+ * IAM role assumed by a Kubernetes service account via EKS OIDC federation.
+ * Automatically wires the OIDC trust policy so pods running under the service
+ * account name derived from `config.serviceName` can assume this role.
+ *
+ * @param scope - The construct scope.
+ * @param config - The BaseConfig object.
+ * @param oidcProviderArns - Per-environment OIDC provider ARNs for EKS cluster federation.
+ */
+export class ServiceAccountRole extends BaseConstruct<Role> {
   private readonly federatedPrincipal: FederatedPrincipal;
   protected readonly resource: Role;
-  constructor(scope: Construct, config: ABConfig) {
-    const roleName = generateServiceAccountRoleName(
+  constructor(
+    scope: Construct,
+    config: BaseConfig,
+    oidcProviderArns: EnvConfig,
+  ) {
+    const roleName = serviceAccountRoleName(
       config.serviceName,
-      config.abEnv,
+      config.stackEnv,
     );
     super(scope, 'service-account-role', roleName, config);
-    this.federatedPrincipal = new EksFederatedOIDCPrincipal(this, config);
+    this.federatedPrincipal = new EksFederatedOIDCPrincipal(
+      this,
+      config,
+      oidcProviderArns,
+    );
     this.resource = new Role(
       scope,
-      generateConstructId(config.stackName, 'role', roleName),
+      constructId(config.stackName, 'role', roleName),
       {
         assumedBy: this.federatedPrincipal,
         roleName: roleName,
@@ -42,27 +56,19 @@ export class ServiceAccountRole extends ABConstruct<Role> {
     return this.resource.roleArn;
   }
   outputArn(): void {
-    const exportName = generateOutputArnExportName(this.resourceName);
+    const exportName = arnExportName(this.resourceName);
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.roleArn,
       exportName: exportName,
       description: `The ARN of the Role ${this.resourceName}`,
     });
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected grantPolicies(iamRole: Role): void {
-    throw new Error('Method not implemented.');
-  }
   addPolicyStatements(...statements: PolicyStatement[]): void {
     statements.forEach((statement) => {
       this.resource.addToPolicy(statement);
     });
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    throw new Error('Method not implemented.');
-  }
-  addToPolicy(statement: any) {
+  addToPolicy(statement: PolicyStatement) {
     this.resource.addToPolicy(statement);
   }
   getRole(): Role {
@@ -76,35 +82,38 @@ export class ServiceAccountRole extends ABConstruct<Role> {
 }
 
 class EksFederatedOIDCPrincipal extends OpenIdConnectPrincipal {
-  protected readonly config: ABConfig;
+  protected readonly config: BaseConfig;
 
-  constructor(scope: Construct, config: ABConfig, serviceName?: string) {
-    const serviceAccountName = generateServiceAccountName(
-      serviceName || config.serviceName,
+  constructor(
+    scope: Construct,
+    config: BaseConfig,
+    oidcProviderArns: EnvConfig,
+    serviceName?: string,
+  ) {
+    const saName = serviceAccountName(serviceName || config.serviceName);
+
+    const eksClusterConfig = new EksClusterConfig(
+      scope,
+      config,
+      oidcProviderArns,
     );
-
-    const aBEksClusterConfig = new ABEksClusterConfig(scope, config);
 
     const openIdConnectProvider =
       OpenIdConnectProvider.fromOpenIdConnectProviderArn(
         scope,
-        generateConstructId(
-          config.stackName,
-          'oidc-provider',
-          serviceAccountName,
-        ),
-        aBEksClusterConfig.getOidcProviderArn(),
+        constructId(config.stackName, 'oidc-provider', saName),
+        eksClusterConfig.getOidcProviderArn(),
       );
 
     const oidcUrl = openIdConnectProvider.openIdConnectProviderIssuer;
-    const namespace = aBEksClusterConfig.getNameSpaceRule();
+    const namespace = eksClusterConfig.getNameSpaceRule();
 
     super(openIdConnectProvider, {
       StringEquals: {
         [`${oidcUrl}:aud`]: 'sts.amazonaws.com',
       },
       StringLike: {
-        [`${oidcUrl}:sub`]: `system:serviceaccount:${namespace}:${serviceAccountName}`,
+        [`${oidcUrl}:sub`]: `system:serviceaccount:${namespace}:${saName}`,
       },
     });
     this.config = config;

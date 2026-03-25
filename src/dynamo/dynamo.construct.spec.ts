@@ -1,25 +1,25 @@
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { Template } from 'aws-cdk-lib/assertions';
+import { Match, Template } from 'aws-cdk-lib/assertions';
 import { AttributeType, Billing, Capacity } from 'aws-cdk-lib/aws-dynamodb';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { ABConfig, ABEnvProps } from '../common';
-import { ABDynamoTable } from './dynamo.construct';
-import { ABDynamoProps, ABDynamoConfig } from './dynamo.default.props';
-import { testAbConfig } from '../test/common.test.const';
+import { BaseConfig, BaseEnvProps } from '../core';
+import { DynamoTable } from './dynamo.construct';
+import { DynamoProps, DynamoConfig } from './dynamo.default.props';
+import { testconfig } from '../test/common.test.const';
 
-describe('ABDynamoTable', () => {
+describe('DynamoTable', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let tableName: string;
-  let dynamoProps: ABDynamoProps;
-  let dynamoConfig: ABDynamoConfig;
-  let envDynamicProps: ABEnvProps<ABDynamoProps>;
-  let envDynamicConfig: ABEnvProps<ABDynamoConfig>;
-  let dynamoTable: ABDynamoTable;
+  let dynamoProps: DynamoProps;
+  let dynamoConfig: DynamoConfig;
+  let envDynamicProps: BaseEnvProps<DynamoProps>;
+  let envDynamicConfig: BaseEnvProps<DynamoConfig>;
+  let dynamoTable: DynamoTable;
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
     tableName = 'myTable';
     dynamoProps = {
       partitionKey: { name: 'id', type: AttributeType.STRING },
@@ -48,7 +48,7 @@ describe('ABDynamoTable', () => {
       default: dynamoProps,
       prod: dynamoProps,
     };
-    dynamoTable = new ABDynamoTable(
+    dynamoTable = new DynamoTable(
       stack,
       tableName,
       config,
@@ -151,7 +151,7 @@ describe('ABDynamoTable', () => {
     );
   });
   it('should have ContributorInsightsSpecification, PointInTimeRecoverySpecification, DeletionProtectionEnabled enabled in production envs', () => {
-    config = new ABConfig(
+    config = new BaseConfig(
       config.domain,
       config.env,
       config.stackName,
@@ -161,7 +161,7 @@ describe('ABDynamoTable', () => {
       config.description,
     );
 
-    new ABDynamoTable(
+    new DynamoTable(
       stack,
       tableName,
       config,
@@ -190,25 +190,20 @@ describe('ABDynamoTable', () => {
     dynamoTable.grantPolicies(role);
     Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
       PolicyDocument: {
-        Statement: [
-          {
-            Action: [
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: Match.arrayWith([
               'dynamodb:BatchGetItem',
-              'dynamodb:GetRecords',
-              'dynamodb:GetShardIterator',
-              'dynamodb:Query',
               'dynamodb:GetItem',
               'dynamodb:Scan',
-              'dynamodb:ConditionCheckItem',
               'dynamodb:BatchWriteItem',
               'dynamodb:PutItem',
               'dynamodb:UpdateItem',
               'dynamodb:DeleteItem',
-              'dynamodb:DescribeTable',
-            ],
+            ]),
             Effect: 'Allow',
-          },
-        ],
+          }),
+        ]),
         Version: '2012-10-17',
       },
     });

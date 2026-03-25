@@ -3,20 +3,20 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { DeadLetterQueue, Queue } from 'aws-cdk-lib/aws-sqs';
-import { ABConfig } from '../common';
+import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
 describe('DLQ', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let dlq: DLQ;
   let dlqfifo: DLQFifo;
   let eventSpecificDlqFifo: DLQFifo;
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
     dlq = new DLQ(stack, config);
     dlqfifo = new DLQFifo(stack, config);
     eventSpecificDlqFifo = new DLQFifo(stack, config, 'eventSpecificDlqFifo');

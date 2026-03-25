@@ -1,6 +1,5 @@
 import { CfnOutput, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import {
-  Alarm,
   ComparisonOperator,
   IAlarmAction,
   Stats,
@@ -9,13 +8,8 @@ import {
 import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import {
-  ABConfig,
-  ABConstruct,
-  generateEdaTopicName,
-  generateOutputArnExportName,
-  generateConstructId,
-} from '../common';
+import { BaseConfig, BaseConstruct, arnExportName, constructId } from '../core';
+import { snsTopicName } from './sns.name.conventions';
 
 const validateSnsFifoProps = (topicProps: TopicProps): void => {
   if (!topicProps.fifo) {
@@ -23,14 +17,14 @@ const validateSnsFifoProps = (topicProps: TopicProps): void => {
   }
 };
 
-class SNSBase extends ABConstruct<Topic> {
+class SNSBase extends BaseConstruct<Topic> {
   protected readonly resource: Topic;
   readonly eventName: string;
   constructor(
     scope: Construct,
     eventName: string,
     topicName: string,
-    config: ABConfig,
+    config: BaseConfig,
     topicProps: TopicProps,
   ) {
     super(scope, 'eda-sns', topicName, config);
@@ -41,7 +35,7 @@ class SNSBase extends ABConstruct<Topic> {
   private createTopic(scope: Construct, topicProps: TopicProps): Topic {
     return new Topic(
       scope,
-      generateConstructId(
+      constructId(
         this.config.stackName,
         'sns',
         this.eventName + `${topicProps.fifo ? '.fifo' : ''}`,
@@ -55,7 +49,7 @@ class SNSBase extends ABConstruct<Topic> {
   }
 
   public outputArn(): void {
-    const exportName = generateOutputArnExportName(this.resourceName);
+    const exportName = arnExportName(this.resourceName);
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.topicArn,
       exportName: exportName,
@@ -74,9 +68,8 @@ class SNSBase extends ABConstruct<Topic> {
   }
 
   public setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    const alarm = new Alarm(
-      this,
-      generateConstructId(this.config.stackName, 'cw-alarm', this.resourceName),
+    this.createAlarm(
+      'notification-failed',
       {
         metric: this.resource.metricNumberOfNotificationsFailed({
           period: Duration.minutes(2),
@@ -89,10 +82,9 @@ class SNSBase extends ABConstruct<Topic> {
         comparisonOperator:
           ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
       },
+      ...alarmActions,
     );
-    this.setAlarmActions(alarm, ...alarmActions);
   }
 
   public resourceRemovalPolicy(
@@ -102,37 +94,42 @@ class SNSBase extends ABConstruct<Topic> {
   }
 }
 
+/**
+ * Standard SNS topic for event-driven publishing. Includes a CloudWatch alarm
+ * for failed notifications and IAM publish grants.
+ *
+ * @param eventName - Logical event name (e.g. "order-created") used in the topic name.
+ * @param topicProps - Optional overrides merged onto the default topic properties.
+ */
 export class EDASns extends SNSBase {
   constructor(
     scope: Construct,
     eventName: string,
-    config: ABConfig,
+    config: BaseConfig,
     topicProps?: TopicProps,
   ) {
-    const defaultProp = {
-      topicName: generateEdaTopicName(config.abEnv, eventName),
-    };
-    topicProps = { ...defaultProp, ...topicProps };
-    const topicName = generateEdaTopicName(config.abEnv, eventName);
+    const topicName = snsTopicName(config.stackEnv, eventName);
+    topicProps = { topicName, ...topicProps };
     super(scope, eventName, topicName, config, topicProps);
   }
 }
 
+/** FIFO variant of {@link EDASns} with content-based deduplication. */
 export class EDASnsFifo extends SNSBase {
   constructor(
     scope: Construct,
     eventName: string,
-    config: ABConfig,
+    config: BaseConfig,
     topicProps?: TopicProps,
   ) {
+    const topicName = snsTopicName(config.stackEnv, eventName, true);
     const defaultProp = {
-      topicName: generateEdaTopicName(config.abEnv, eventName, true),
+      topicName,
       fifo: true,
       contentBasedDeduplication: true,
     };
     topicProps = { ...defaultProp, ...topicProps };
     validateSnsFifoProps(topicProps);
-    const topicName = generateEdaTopicName(config.abEnv, eventName, true);
     super(scope, eventName, topicName, config, topicProps);
   }
 }

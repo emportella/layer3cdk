@@ -1,13 +1,13 @@
 import { CfnElement, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { ABConfig, generateConstructId } from '../common';
+import { BaseConfig, constructId } from '../core';
 import { EDASns, EDASnsFifo } from './sns.eda.construct';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
 describe('EDASns', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let iAMRole: Role;
   let eventName: string;
   let sns: EDASns;
@@ -16,16 +16,15 @@ describe('EDASns', () => {
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
     iAMRole = new Role(stack, 'IAMRole', {
       assumedBy: new ServicePrincipal('sts.amazonaws.com'),
     });
     eventName = 'MyTopic';
     sns = new EDASns(stack, eventName, config);
     topicRef = stack.getLogicalId(
-      stack.node.findChild(
-        generateConstructId(config.stackName, 'sns', sns.eventName),
-      ).node.defaultChild as CfnElement,
+      stack.node.findChild(constructId(config.stackName, 'sns', sns.eventName))
+        .node.defaultChild as CfnElement,
     );
     snsFifo = new EDASnsFifo(stack, eventName, config);
   });

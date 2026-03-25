@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { ABConfig } from '../common';
-import { testAbConfig } from '../test/common.test.const';
+import { BaseConfig } from '../core';
+import { testconfig } from '../test/common.test.const';
 import { ApplicationRepository } from './ecr.construct';
 
 describe('ECR', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let repository: ApplicationRepository;
 
   beforeEach(() => {
     stack = new Stack();
-    config = testAbConfig;
+    config = testconfig;
     repository = ApplicationRepository.create(
       stack,
       'rpj-rp-tasks-service',

@@ -1,48 +1,54 @@
 import { Alarm, AlarmProps, IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
 import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { ABConfig } from './ab.config';
-import { ResourceType } from './ab.constant';
-import {
-  generateAlarmConstructId,
-  generateConstructId,
-} from './ab.name.conventions';
+import { BaseConfig } from './base.config';
+import { ResourceType } from './constants';
+import { alarmConstructId, constructId } from './name.conventions';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { pascalCaseToKebabCase, trimDashes } from '../util';
 
 /**
- * Represents an abstract class for ABConstruct.
- * @template T The type of the resource.
+ * Abstract base for all Layer3CDK resource constructs. Provides standardized naming,
+ * CloudWatch alarm wiring, IAM grant hooks, and removal-policy support.
+ * @template T The underlying AWS CDK resource type (e.g. `Queue`, `TableV2`, `Topic`).
  */
-export abstract class ABConstruct<T> extends Construct {
+export abstract class BaseConstruct<T> extends Construct {
   readonly resourceType: ResourceType;
   readonly resourceName: string;
   protected resource: T | undefined;
-  protected readonly config: ABConfig;
+  protected readonly config: BaseConfig;
 
   constructor(
     scope: Construct,
     resourceType: ResourceType,
     resourceName: string,
-    config: ABConfig,
+    config: BaseConfig,
   ) {
-    const id = generateConstructId(
-      config.stackName,
-      resourceType,
-      resourceName,
-    );
+    const id = constructId(config.stackName, resourceType, resourceName);
     super(scope, id);
     this.resourceType = resourceType;
     this.resourceName = resourceName;
     this.config = config;
   }
-  protected abstract getArn(): string;
-  protected abstract outputArn(): void;
-  protected abstract grantPolicies(iamRole: Role): void;
-  protected abstract addPolicyStatements(
-    ...statements: PolicyStatement[]
-  ): void;
-  protected abstract setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void;
+
+  protected getArn(): string {
+    throw new Error(`getArn() not supported by ${this.constructor.name}`);
+  }
+  protected outputArn(): void {
+    // no-op by default
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected grantPolicies(iamRole: Role): void {
+    // no-op by default
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected addPolicyStatements(...statements: PolicyStatement[]): void {
+    // no-op by default
+  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  protected setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
+    // no-op by default
+  }
 
   /**
    * Sets custom alarms for the resource.
@@ -79,21 +85,51 @@ export abstract class ABConstruct<T> extends Construct {
     shortKebabCasedMetricName: string,
     ...alarmActions: IAlarmAction[]
   ): void {
-    const props: AlarmProps = consumer(this.resource as T, this.resourceName);
+    if (this.resource === undefined) {
+      throw new Error(
+        `Resource not initialized for ${this.resourceName}. Cannot set custom alarms.`,
+      );
+    }
+    const props: AlarmProps = consumer(this.resource, this.resourceName);
     const alarm = new Alarm(
       this,
-      generateAlarmConstructId(
+      alarmConstructId(
         this.config.stackName,
         this.resourceName,
         trimDashes(pascalCaseToKebabCase(shortKebabCasedMetricName)),
       ),
       {
         ...props,
-        actionsEnabled: alarmActions ? true : false,
+        actionsEnabled: alarmActions.length > 0,
       },
     );
     this.setAlarmActions(alarm, ...alarmActions);
   }
+  /**
+   * Creates an alarm with standardized construct ID and action wiring.
+   *
+   * @param metricName - Short kebab-cased metric name used in the alarm construct ID.
+   * @param props - The alarm properties (excluding actionsEnabled, which is derived from alarmActions).
+   * @param alarmActions - The alarm actions to wire up.
+   * @returns The created Alarm.
+   */
+  protected createAlarm(
+    metricName: string,
+    props: Omit<AlarmProps, 'actionsEnabled'>,
+    ...alarmActions: IAlarmAction[]
+  ): Alarm {
+    const alarm = new Alarm(
+      this,
+      alarmConstructId(this.config.stackName, this.resourceName, metricName),
+      {
+        ...props,
+        actionsEnabled: alarmActions.length > 0,
+      },
+    );
+    this.setAlarmActions(alarm, ...alarmActions);
+    return alarm;
+  }
+
   /**
    * Sets the alarm actions for the specified alarm.
    *
@@ -106,11 +142,11 @@ export abstract class ABConstruct<T> extends Construct {
       alarm.addOkAction(...alarmActions);
     }
   }
-  /**
-     *This method is used to set the resource policy to retain the queue when the stack is deleted.
-     default is DESTROY don't use this method unless you want to retain the queue when the stack is to be deleted.
-     */
-  protected abstract resourceRemovalPolicy(
+
+  protected resourceRemovalPolicy(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     removalPolicy: RemovalPolicy.RETAIN | RemovalPolicy.DESTROY,
-  ): void;
+  ): void {
+    // no-op by default
+  }
 }

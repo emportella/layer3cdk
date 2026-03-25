@@ -1,6 +1,5 @@
 import { CfnOutput, Duration, Fn, RemovalPolicy } from 'aws-cdk-lib';
 import {
-  Alarm,
   ComparisonOperator,
   IAlarmAction,
   Stats,
@@ -14,13 +13,7 @@ import {
 } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import {
-  ABConfig,
-  ABConstruct,
-  generateAlarmConstructId,
-  generateConstructId,
-  generateOutputArnExportName,
-} from '../common';
+import { BaseConfig, BaseConstruct, constructId, arnExportName } from '../core';
 
 const validateFifoQueueProps = (queueProps: QueueProps): string[] => {
   const validationErrors: string[] = [];
@@ -35,30 +28,25 @@ const validateFifoQueueProps = (queueProps: QueueProps): string[] => {
   return validationErrors;
 };
 
-export abstract class SQSBase extends ABConstruct<Queue> {
+export abstract class SQSBase extends BaseConstruct<Queue> {
   protected readonly resource: Queue;
   readonly eventName: string;
 
   constructor(
     scope: Construct,
     eventName: string,
-    config: ABConfig,
+    config: BaseConfig,
     queueProps: QueueProps,
   ) {
     super(scope, 'eda-sqs', queueProps.queueName as string, config);
     this.resource = this.createQueue(scope, queueProps);
     this.eventName = eventName;
-    this.node.addValidation;
   }
 
   private createQueue(scope: Construct, queueProps: QueueProps): Queue {
     return new Queue(
       scope,
-      generateConstructId(
-        this.config.stackName,
-        'sqs',
-        queueProps.queueName as string,
-      ),
+      constructId(this.config.stackName, 'sqs', queueProps.queueName as string),
       queueProps,
     );
   }
@@ -92,11 +80,12 @@ export abstract class SQSBase extends ABConstruct<Queue> {
   public subscribeWithCfnSubscription(
     arn: string,
     filterPolicyScope: 'MessageBody' | 'MessageAttributes',
-    filterPolicy: any,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    filterPolicy: any, // CDK CfnSubscription accepts any for filter policy
   ) {
     new CfnSubscription(
       this,
-      generateConstructId(
+      constructId(
         this.config.stackName,
         'sns',
         `subscription-${this.eventName}`,
@@ -132,7 +121,7 @@ export abstract class SQSBase extends ABConstruct<Queue> {
   ) {
     const topic = Topic.fromTopicArn(
       this,
-      generateConstructId(
+      constructId(
         this.config.stackName,
         'sns',
         `imported-topic-${this.eventName}`,
@@ -147,7 +136,7 @@ export abstract class SQSBase extends ABConstruct<Queue> {
   }
 
   protected outputArn(): void {
-    const exportName = generateOutputArnExportName(this.resourceName);
+    const exportName = arnExportName(this.resourceName);
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.queueArn,
       exportName: exportName,
@@ -172,13 +161,8 @@ export abstract class SQSBase extends ABConstruct<Queue> {
   }
 
   public setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    const staleOldMessageAlarm = new Alarm(
-      this,
-      generateAlarmConstructId(
-        this.config.stackName,
-        this.resourceName,
-        'old-messages',
-      ),
+    this.createAlarm(
+      'old-messages',
       {
         metric: this.resource.metricApproximateAgeOfOldestMessage({
           period: Duration.minutes(2),
@@ -192,16 +176,11 @@ export abstract class SQSBase extends ABConstruct<Queue> {
         comparisonOperator:
           ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
       },
+      ...alarmActions,
     );
-    const numberOfMessagesAlarm = new Alarm(
-      this,
-      generateAlarmConstructId(
-        this.config.stackName,
-        this.resourceName,
-        'number-of-messages',
-      ),
+    this.createAlarm(
+      'number-of-messages',
       {
         metric: this.resource.metricApproximateNumberOfMessagesVisible({
           period: Duration.minutes(2),
@@ -215,11 +194,9 @@ export abstract class SQSBase extends ABConstruct<Queue> {
         comparisonOperator:
           ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
       },
+      ...alarmActions,
     );
-    this.setAlarmActions(staleOldMessageAlarm, ...alarmActions);
-    this.setAlarmActions(numberOfMessagesAlarm, ...alarmActions);
   }
 }
 
@@ -227,7 +204,7 @@ export abstract class SQSBaseFifo extends SQSBase {
   constructor(
     scope: Construct,
     eventName: string,
-    config: ABConfig,
+    config: BaseConfig,
     queueProps: QueueProps,
   ) {
     super(scope, eventName, config, queueProps);

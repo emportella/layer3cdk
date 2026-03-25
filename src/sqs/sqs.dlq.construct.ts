@@ -6,29 +6,24 @@ import {
   Stats,
   TreatMissingData,
 } from 'aws-cdk-lib/aws-cloudwatch';
-import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { DeadLetterQueue, Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import {
-  ABConfig,
-  ABConstruct,
-  generateAlarmConstructId,
-  generateConstructId,
-  generateEdaDlqName,
-  generateOutputArnExportName,
-} from '../common';
+  BaseConfig,
+  BaseConstruct,
+  alarmConstructId,
+  constructId,
+  arnExportName,
+} from '../core';
+import { sqsDlqName } from './sqs.name.conventions';
 
-class DLQBase extends ABConstruct<Queue> {
+class DLQBase extends BaseConstruct<Queue> {
   protected readonly resource: Queue;
-  constructor(scope: Construct, queueProps: QueueProps, config: ABConfig) {
+  constructor(scope: Construct, queueProps: QueueProps, config: BaseConfig) {
     super(scope, 'sqs-dlq', queueProps.queueName as string, config);
     this.resource = new Queue(
       scope,
-      generateConstructId(
-        config.stackName,
-        'sqs',
-        queueProps.queueName as string,
-      ),
+      constructId(config.stackName, 'sqs', queueProps.queueName as string),
       queueProps,
     );
   }
@@ -38,7 +33,7 @@ class DLQBase extends ABConstruct<Queue> {
   }
 
   public outputArn(): void {
-    const exportName = generateOutputArnExportName(this.resourceName);
+    const exportName = arnExportName(this.resourceName);
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.queueArn,
       exportName: exportName,
@@ -50,18 +45,10 @@ class DLQBase extends ABConstruct<Queue> {
   ): void {
     this.resource.applyRemovalPolicy(removalPolicy);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected grantPolicies(iamRole: Role): void {
-    throw new Error('DLQ does not grant policies');
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected addPolicyStatements(...statements: PolicyStatement[]): void {
-    throw new Error('Method not implemented.');
-  }
   public setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
     const alarm = new Alarm(
       this,
-      generateAlarmConstructId(
+      alarmConstructId(
         this.config.stackName,
         this.resourceName,
         'messages-in-dlq',
@@ -95,25 +82,33 @@ class DLQBase extends ABConstruct<Queue> {
   }
 }
 
+/**
+ * Standard (non-FIFO) dead-letter queue with a 14-day retention period.
+ * Use {@link DLQ.getDlq} to wire it into an EDA queue construct.
+ */
 export class DLQ extends DLQBase {
-  constructor(scope: Construct, config: ABConfig) {
+  constructor(scope: Construct, config: BaseConfig) {
     const queueProps: QueueProps = {
-      queueName: generateEdaDlqName(config.abEnv, config.serviceName),
+      queueName: sqsDlqName(config.stackEnv, config.serviceName),
       retentionPeriod: Duration.days(14),
     };
     super(scope, queueProps, config);
   }
 }
 
+/**
+ * FIFO dead-letter queue with content-based deduplication and a 14-day retention period.
+ * @param eventName - Optional event name override; defaults to the service name from config.
+ */
 export class DLQFifo extends DLQBase {
   constructor(
     scope: Construct,
-    config: ABConfig,
+    config: BaseConfig,
     eventName?: string | undefined,
   ) {
     const queueProps: QueueProps = {
-      queueName: generateEdaDlqName(
-        config.abEnv,
+      queueName: sqsDlqName(
+        config.stackEnv,
         eventName !== undefined ? eventName : config.serviceName,
         true,
       ),

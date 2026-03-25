@@ -1,22 +1,22 @@
 import { Secret } from 'aws-cdk-lib/aws-secretsmanager';
-import { ABConfig, ABConstruct } from '../common';
+import { BaseConfig, BaseConstruct } from '../core';
 import { RemovalPolicy } from 'aws-cdk-lib';
-import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
-import { Role, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { SecretsContextLevel } from './secrets.constants';
 
-class ABSecrets extends ABConstruct<Secret> {
+class BaseSecrets extends BaseConstruct<Secret> {
   private readonly secret: Secret;
 
   constructor(
     scope: Construct,
     parameterName: string,
-    config: ABConfig,
+    config: BaseConfig,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     contextLevel: SecretsContextLevel,
   ) {
     super(scope, 'secrets', parameterName, config);
-    
+
     this.secret = new Secret(this, 'Secret');
   }
 
@@ -27,22 +27,9 @@ class ABSecrets extends ABConstruct<Secret> {
   protected getArn(): string {
     return this.secret.secretArn;
   }
-  protected outputArn(): void {
-    throw new Error('Method not implemented.');
-  }
-
   protected grantPolicies(iamRole: Role): void {
     this.secret.grantRead(iamRole);
   }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected addPolicyStatements(...statements: PolicyStatement[]): void {
-    throw new Error('Method not implemented.');
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  protected setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    throw new Error('Method not implemented.');
-  }
-
   protected resourceRemovalPolicy(
     removalPolicy: RemovalPolicy.RETAIN | RemovalPolicy.DESTROY,
   ): void {
@@ -50,8 +37,12 @@ class ABSecrets extends ABConstruct<Secret> {
   }
 }
 
-export class GlobalSecrets extends ABSecrets {
-  constructor(scope: Construct, parameterName: string, config: ABConfig) {
+/**
+ * Secrets Manager secret scoped at the global level (shared across all domains and services).
+ * Grants read-only access via {@link GlobalSecrets.grantPolicies}.
+ */
+export class GlobalSecrets extends BaseSecrets {
+  constructor(scope: Construct, parameterName: string, config: BaseConfig) {
     super(scope, parameterName, config, 'global');
   }
 }

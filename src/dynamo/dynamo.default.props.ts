@@ -5,7 +5,7 @@ import {
   TableEncryptionV2,
   TablePropsV2,
 } from 'aws-cdk-lib/aws-dynamodb';
-import { ABEnvProps } from '../common';
+import { BaseEnvProps } from '../core';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { OmittedTableConfigs, OmittedTableProps } from './dynamo.constants';
 
@@ -15,42 +15,16 @@ export type DynamoAlarmThresholds = {
    */
   alarmReadThreshold: number;
   /**
-   * Value for the alarm threshold for ConsumedReadCapacityUnits
+   * Value for the alarm threshold for ConsumedWriteCapacityUnits
    */
   alarmWriteThreshold: number;
 };
-export type ABDynamoConfig = Omit<TablePropsV2, OmittedTableConfigs> &
+export type DynamoConfig = Omit<TablePropsV2, OmittedTableConfigs> &
   DynamoAlarmThresholds;
-export type ABDynamoProps = Omit<TablePropsV2, OmittedTableProps>;
+export type DynamoProps = Omit<TablePropsV2, OmittedTableProps>;
 
-export const DYNAMO_ENVIRONMENTS_PROPS: ABEnvProps<ABDynamoConfig> = {
+export const DYNAMO_ENVIRONMENTS_PROPS: BaseEnvProps<DynamoConfig> = {
   default: {
-    tableClass: TableClass.STANDARD,
-    billing: Billing.provisioned({
-      readCapacity: Capacity.autoscaled({ minCapacity: 5, maxCapacity: 25 }),
-      writeCapacity: Capacity.autoscaled({ minCapacity: 5, maxCapacity: 25 }),
-    }),
-    alarmReadThreshold: 20,
-    alarmWriteThreshold: 20,
-    removalPolicy: RemovalPolicy.RETAIN,
-    encryption: TableEncryptionV2.dynamoOwnedKey(),
-    pointInTimeRecovery: false,
-    contributorInsights: false,
-  },
-  dev: {
-    tableClass: TableClass.STANDARD,
-    billing: Billing.provisioned({
-      readCapacity: Capacity.autoscaled({ minCapacity: 5, maxCapacity: 25 }),
-      writeCapacity: Capacity.autoscaled({ minCapacity: 5, maxCapacity: 25 }),
-    }),
-    alarmReadThreshold: 20,
-    alarmWriteThreshold: 20,
-    removalPolicy: RemovalPolicy.RETAIN,
-    encryption: TableEncryptionV2.dynamoOwnedKey(),
-    pointInTimeRecovery: false,
-    contributorInsights: false,
-  },
-  preprod: {
     tableClass: TableClass.STANDARD,
     billing: Billing.provisioned({
       readCapacity: Capacity.autoscaled({ minCapacity: 5, maxCapacity: 25 }),

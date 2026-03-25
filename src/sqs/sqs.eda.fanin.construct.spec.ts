@@ -3,18 +3,18 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { ABConfig, generateConstructId } from '../common';
+import { BaseConfig, constructId } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
   EDAFaninQueue,
   EDAFaninQueueFifo,
   grantFaninPublishing,
 } from './sqs.eda.fanin.construct';
-import { testAbConfig } from '../test/common.test.const';
+import { testconfig } from '../test/common.test.const';
 
 describe('EDAFaninQueue', () => {
   let stack: Stack;
-  let config: ABConfig;
+  let config: BaseConfig;
   let dlq: DLQ;
   let dlqfifo: DLQFifo;
   let faninQueue: EDAFaninQueue;
@@ -25,13 +25,13 @@ describe('EDAFaninQueue', () => {
   beforeEach(() => {
     stack = new Stack();
     eventName = 'TestEventCreated';
-    config = testAbConfig;
+    config = testconfig;
     dlq = new DLQ(stack, config);
     dlqfifo = new DLQFifo(stack, config);
     faninQueue = new EDAFaninQueue(stack, eventName, dlq.getDlq(), config);
     faninQueueRef = stack.getLogicalId(
       stack.node.findChild(
-        generateConstructId(config.stackName, 'sqs', faninQueue.resourceName),
+        constructId(config.stackName, 'sqs', faninQueue.resourceName),
       ).node.defaultChild as CfnElement,
     );
     faninQueueFifo = new EDAFaninQueueFifo(

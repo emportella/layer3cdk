@@ -1,7 +1,7 @@
 /**
- * Represents the possible environments for ApplyBoard.
+ * Represents the possible environments for Layer3CDK.
  */
-export type ABEnvironment = 'dev' | 'prod' | 'perf' | 'preprod';
+export type StackEnv = 'dev' | 'prod' | 'perf' | 'preprod';
 
 /**
  * Represents the available AWS regions.
@@ -52,7 +52,7 @@ export type ResourceType =
  * Represents the available domains.
  */
 export type Domain =
-  | 'ab' //Company wide
+  | 'org' //Company wide
   | 'ap' //Application Team Domain (new)
   | 'awa' //Application domain (old)
   | 'csr' //Content Search and Recommendations domain

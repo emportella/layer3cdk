@@ -16,7 +16,7 @@ The following resources are created:
 It exports the following:
 
 * `ChatbotSlackChannelIds` - The IDs of the created Slack channels;
-* `ChatbotSlackChannnel` - ABConstruct that handles the creation of the integration, role and topic. It also exports the Arn of the Topic to be used in other stacks of the domain for the creation of alarms.
+* `ChatbotSlackChannnel` - BaseConstruct that handles the creation of the integration, role and topic. It also exports the Arn of the Topic to be used in other stacks of the domain for the creation of alarms.
 
 > [!NOTE]
 > The below implementation requires individual channels for each environment. This is the prefered way to handle the notifications, as it allows for better control of the notifications and the ability to have different channels for different environments.
@@ -46,36 +46,36 @@ It exports the following:
 #### how to use the SNSAction between stacks within the same project
 
 ```typescript
-    //Use ABConfigExtended to extend the ABConfig with the AlarmActions
-   export type ABConfigWithExports = ABConfigExtended<{
+    //Use BaseConfigExtended to extend the BaseConfig with the AlarmActions
+   export type BaseConfigWithExports = BaseConfigExtended<{
       alarmActions: IAlarmAction[];
     }>;
     
   
     app = new App();
-    stack1 = new Stack(app, 'stack1', abConfig);
+    stack1 = new Stack(app, 'stack1', config);
 
-    const dwPublisherConfig: ABConfigWithExports = {
-      ...new ABConfig(
+    const dwPublisherConfig: BaseConfigWithExports = {
+      ...new BaseConfig(
         'rpj',
         config.getEnvironment(),
         dwpublisherStackName,
-        config.getUpdatedABTags(DW_PUBLISHER_TAGS),
-        config.getABEnv(),
+        config.getUpdatedResourceTags(DW_PUBLISHER_TAGS),
+        config.getStackEnv(),
         DW_PUBLISHER_NAME,
         'Data Warehouse Publisher CDK Stack',
       ),
       alarmActions: snsActions,
     };
     stack2 = new Stack(app, 'stack2', {
-      ...abConfig,
+      ...config,
       snsAction: stack1.snsAction,
     }});
 
     //stack2 depends on stack1
     stack2.addDependency(stack1);
 ```
-## ABSnsAction
+## SnsAction
 
 This construct is used to import topics from other projects and use them as AlarmActions.
 Alarme channels are individual for each domain and it is only created once on the main domain stack and then imported to the other stacks.
@@ -98,8 +98,8 @@ The AlarmActionMap is a map that contains the name of the action and the ARN of 
       googleChat: 'arn:aws:sns:us-east-1:123456789012:googleChatTopic',
     };
   
-    //create the ABSnsAction within the stack
-    const snsAction: SnsAction[] = new ABSnsAction(scope, abConfig, snsAlarmActionMap).getSnsActions();
+    //create the SnsAction within the stack
+    const snsAction: AlarmSnsAction[] = new AlarmSnsAction(scope, config, snsAlarmActionMap).getSnsActions();
 
     //use the snsAction in the alarm
     const alarm = new Alarm(scope, 'alarm', {

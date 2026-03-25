@@ -1,5 +1,6 @@
-import { ABEnvironment } from '../common';
+import { StackEnv } from '../core';
 
 export type EnvConfig = {
-  [key in ABEnvironment]: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key in StackEnv]: any;
 };
