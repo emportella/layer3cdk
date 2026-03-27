@@ -1,6 +1,5 @@
 import { Environment } from 'aws-cdk-lib';
 import { BaseConfig } from './base.config';
-import { Domain, StackEnv } from './constants';
 import { ResourceTags } from './tags';
 
 /**
@@ -15,12 +14,13 @@ export interface BaseConstructProps {
  * Props for constructing a {@link BaseConfig} instance.
  */
 export interface BaseConfigProps {
-  domain: Domain;
+  department: string;
   env: Environment;
   stackName: string;
   tags: ResourceTags;
-  stackEnv: StackEnv;
+  stackEnv: string;
   serviceName: string;
+  team?: string;
   description?: string;
 }
 

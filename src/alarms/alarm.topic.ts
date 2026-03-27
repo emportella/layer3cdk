@@ -27,7 +27,7 @@ export const createAlarmTopic = (
     {
       topicName: alarmTopicName({
         env: config.stackEnv,
-        domain: config.domain,
+        department: config.department,
         alarmActionType,
       }),
     },

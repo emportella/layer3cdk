@@ -1,7 +1,18 @@
 /**
- * Represents the possible environments for Layer3CDK.
+ * Represents a stack environment.
+ * Any string is accepted; use {@link DEFAULT_ENVS} for the built-in defaults.
  */
-export type StackEnv = 'dev' | 'prd' | 'stg';
+export type StackEnv = string;
+
+/**
+ * Built-in environment values shipped with Layer3CDK.
+ */
+export const DEFAULT_ENVS = ['dev', 'stg', 'prd'] as const;
+
+/**
+ * Convenience alias for the built-in environment literals.
+ */
+export type DefaultStackEnv = (typeof DEFAULT_ENVS)[number];
 
 /**
  * Represents the available AWS regions.
@@ -50,24 +61,36 @@ export type ResourceType =
   | 's3-static-site';
 
 /**
- * Represents the available domains.
+ * Represents a department (business unit).
+ * Any string is accepted; use {@link DEFAULT_DEPARTMENTS} for the built-in defaults.
  */
-export type Domain =
-  | 'org' //Company wide
-  | 'ap' //Application Team Domain (new)
-  | 'awa' //Application domain (old)
-  | 'csr' //Content Search and Recommendations domain
-  | 'da' //Data architecture
-  | 'ds' //Data science
-  | 'dsj' //Direct Student Journey
-  | 'fnt' //Fintech
-  | 'infra' //DevOps
-  | 'it' //it
-  | 'mob' //mobile
-  | 'pltf' //Platform
-  | 'pm' //Program Management
-  | 'qa' //Quality Assurance
-  | 'rpj' //Recruitment Partner Journey
-  | 'sch' //School
-  | 'tss' //Technology Strategy & Standards
-  | 'uie'; //User Interface Engineering
+export type Department = string;
+
+/**
+ * Built-in department values shipped with Layer3CDK.
+ */
+export const DEFAULT_DEPARTMENTS = [
+  'org',
+  'ap',
+  'awa',
+  'csr',
+  'da',
+  'ds',
+  'dsj',
+  'fnt',
+  'infra',
+  'it',
+  'mob',
+  'pltf',
+  'pm',
+  'qa',
+  'rpj',
+  'sch',
+  'tss',
+  'uie',
+] as const;
+
+/**
+ * Convenience alias for the built-in department literals.
+ */
+export type DefaultDepartment = (typeof DEFAULT_DEPARTMENTS)[number];

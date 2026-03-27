@@ -96,7 +96,7 @@ describe('SSS3', () => {
 
   it('should have RETAIN removal policy and versioning in prd', () => {
     const prdConfig = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,
@@ -381,7 +381,7 @@ describe('SSS3', () => {
 
   it('should add validation error when prd uses DESTROY removal policy', () => {
     const prdConfig = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,

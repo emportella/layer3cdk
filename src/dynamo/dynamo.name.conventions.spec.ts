@@ -5,7 +5,7 @@ describe('Dynamo Name Conventions', () => {
   describe('dynamoTableName', () => {
     it('should return the correct table name', () => {
       const config = new BaseConfig({
-        domain: 'rpj',
+        department: 'rpj',
         env: { account: '123456789012', region: 'us-east-1' },
         stackName: 'rpj-test-stack',
         tags: {

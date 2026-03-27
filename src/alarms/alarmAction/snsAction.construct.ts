@@ -25,7 +25,7 @@ export default class AlarmSnsAction extends BaseConstruct<
     super(
       scope,
       'sns-cwaction',
-      alarmTopicName({ env: config.stackEnv, domain: config.domain }),
+      alarmTopicName({ env: config.stackEnv, department: config.department }),
       config,
     );
     this.topic = [];

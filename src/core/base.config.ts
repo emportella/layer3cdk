@@ -1,28 +1,29 @@
 import { Environment, StackProps } from 'aws-cdk-lib';
 import { BaseConfigProps } from './base.construct.props';
-import { StackEnv, Domain } from './constants';
 import { ResourceTags } from './tags';
 
 /**
- * Core configuration for all Layer3CDK stacks. Holds environment, naming, and tagging metadata
- * used by constructs to generate consistent resource names and apply standard tags.
+ * Configuration object passed to every Layer3CDK construct.
+ * Carries environment, department, team, service name, tags, and CDK environment.
  */
 export class BaseConfig implements StackProps {
-  readonly domain: Domain;
+  readonly department: string;
   readonly env: Environment;
   readonly stackName: string;
   readonly tags: ResourceTags;
-  readonly stackEnv: StackEnv;
+  readonly stackEnv: string;
   readonly serviceName: string;
+  readonly team?: string;
   readonly description?: string;
 
   constructor(props: BaseConfigProps) {
-    this.domain = props.domain;
+    this.department = props.department;
     this.env = props.env;
     this.stackName = props.stackName;
     this.tags = props.tags;
     this.stackEnv = props.stackEnv;
     this.serviceName = props.serviceName;
+    this.team = props.team;
     this.description = props.description;
   }
 }

@@ -19,7 +19,7 @@ describe('Alarms Name Conventions', () => {
   });
   describe('alarmTopicName', () => {
     it('should return the correct topic name', () => {
-      expect(alarmTopicName({ env: 'dev', domain: 'rpj' })).toEqual(
+      expect(alarmTopicName({ env: 'dev', department: 'rpj' })).toEqual(
         'dev-rpj-alarm-action',
       );
     });
@@ -27,7 +27,7 @@ describe('Alarms Name Conventions', () => {
       expect(
         alarmTopicName({
           env: 'dev',
-          domain: 'rpj',
+          department: 'rpj',
           alarmActionType: 'opsGenie',
         }),
       ).toEqual('dev-rpj-alarm-action-opsGenie');

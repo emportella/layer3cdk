@@ -21,7 +21,7 @@ class SSMStringParameter extends BaseConstruct<StringParameter> {
     const ssmStringParameterName = ssmParameterName({
       parameterName,
       serviceName: config.serviceName,
-      domain: config.domain,
+      department: config.department,
       contextLevel,
       env: config.stackEnv,
     });
@@ -65,7 +65,7 @@ class SSMStringParameter extends BaseConstruct<StringParameter> {
 }
 
 /**
- * SSM String Parameter scoped at the global level (shared across all domains and services).
+ * SSM String Parameter scoped at the global level (shared across all departments and services).
  * Parameter path: `/<env>/global/<parameterName>`
  */
 export class GlobalSSMStringParameter extends SSMStringParameter {
@@ -81,24 +81,24 @@ export class GlobalSSMStringParameter extends SSMStringParameter {
 }
 
 /**
- * SSM String Parameter scoped at the domain level (shared across services within a domain).
- * Parameter path: `/<env>/<domain>/<parameterName>`
+ * SSM String Parameter scoped at the department level (shared across services within a department).
+ * Parameter path: `/<env>/<department>/<parameterName>`
  */
-export class DomainSSMStringParameter extends SSMStringParameter {
+export class DepartmentSSMStringParameter extends SSMStringParameter {
   constructor(scope: Construct, props: SSMStringParameterProps) {
     super(
       scope,
       props.parameterName,
       props.parameterValue,
       props.config,
-      'domain',
+      'department',
     );
   }
 }
 
 /**
  * SSM String Parameter scoped at the service level (private to a single service).
- * Parameter path: `/<env>/<domain>/<serviceName>/<parameterName>`
+ * Parameter path: `/<env>/<department>/<serviceName>/<parameterName>`
  */
 export class ServiceSSMStringParameter extends SSMStringParameter {
   constructor(scope: Construct, props: SSMStringParameterProps) {

@@ -16,12 +16,7 @@ import {
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import {
-  BaseConstruct,
-  StackEnv,
-  constructId,
-  arnExportName,
-} from '../../core';
+import { BaseConstruct, constructId, arnExportName } from '../../core';
 import { chatbotRoleName, slackConfigName } from '../alarms.name.conventions';
 import { createAlarmTopic } from '../alarm.topic';
 import { BaseConfig } from '../../core/base.config';
@@ -37,16 +32,14 @@ import { ChatbotSlackChannelProps } from '../alarms.construct.props';
  * Run the /invite `@AWS` command in Slack to invite the AWS Chatbot to the channel.
  * @see https://docs.aws.amazon.com/chatbot/latest/adminguide/slack-setup.html
  */
-export type ChatbotSlackChannelIds = {
-  [key in StackEnv]: string;
-};
+export type ChatbotSlackChannelIds = Record<string, string>;
 
 /**
  * AWS Chatbot Slack channel integration for CloudWatch alarm notifications.
  * Creates an SNS topic, a Slack channel configuration, and the required IAM role.
  * Call {@link ChatbotSlackChannnel.getSnsAction} to wire alarms to Slack.
  *
- * @param slackChannelIds - Map of Slack channel IDs per environment (dev, stg, prd).
+ * @param slackChannelIds - Map of Slack channel IDs per environment.
  * @param slackWorkspaceId - The Slack workspace ID configured in AWS Chatbot.
  */
 export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguration> {
@@ -57,13 +50,13 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
 
   constructor(scope: Construct, props: ChatbotSlackChannelProps) {
     const { config, slackChannelIds, slackWorkspaceId } = props;
-    const resourceName = `${config.stackEnv}-${config.domain}-chatBot-slack-alarm`;
+    const resourceName = `${config.stackEnv}-${config.department}-chatBot-slack-alarm`;
     super(scope, 'chatbot', resourceName, config);
     this.topic = this.createTopic(config);
     this.defaultProps = {
       slackChannelConfigurationName: slackConfigName(
         config.stackEnv,
-        config.domain,
+        config.department,
       ),
       slackChannelId: this.getSlackChannelId(slackChannelIds),
       slackWorkspaceId,
@@ -110,7 +103,7 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
    * - AWSChatbotServicePolicy
    * - CloudWatchReadOnlyAccess
    * - AmazonSNSReadOnlyAccess
-   * Role name: <env>-<domain>-chatbot-slack-role
+   * Role name: <env>-<department>-chatbot-slack-role
    * @returns Role
    */
   private slackChannelRole(scope: Construct, config: BaseConfig): Role {
@@ -118,7 +111,7 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
       scope,
       constructId(config.stackName, 'chatbot-slack', 'role'),
       {
-        roleName: chatbotRoleName(config.stackEnv, config.domain),
+        roleName: chatbotRoleName(config.stackEnv, config.department),
         description: 'Chatbot role for Slack channel configuration for ',
         assumedBy: new ServicePrincipal('chatbot.amazonaws.com'),
         managedPolicies: [

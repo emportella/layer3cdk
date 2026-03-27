@@ -1,5 +1,4 @@
 import { BaseConstructProps } from '../core/base.construct.props';
-import { Domain, StackEnv } from '../core/constants';
 import { SSMContextLevel } from './ssm.contants';
 
 /**
@@ -8,13 +7,13 @@ import { SSMContextLevel } from './ssm.contants';
 export interface SsmParameterNameProps {
   parameterName: string;
   serviceName: string;
-  domain: Domain;
+  department: string;
   contextLevel: SSMContextLevel;
-  env: StackEnv;
+  env: string;
 }
 
 /**
- * Props for {@link GlobalSSMStringParameter}, {@link DomainSSMStringParameter},
+ * Props for {@link GlobalSSMStringParameter}, {@link DepartmentSSMStringParameter},
  * and {@link ServiceSSMStringParameter} constructs.
  */
 export interface SSMStringParameterProps extends BaseConstructProps {

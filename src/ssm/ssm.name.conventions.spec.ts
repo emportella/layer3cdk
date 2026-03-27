@@ -8,21 +8,21 @@ describe('SSM Name Conventions', () => {
           ssmParameterName({
             parameterName: 'sample',
             serviceName: 'ServiceName',
-            domain: 'rpj',
+            department: 'rpj',
             contextLevel: 'global',
             env: 'dev',
           }),
         ).toEqual('/dev/global/sample');
       });
     });
-    describe('given context is domain', () => {
+    describe('given context is department', () => {
       it('should return the correct ssm string parameter name', () => {
         expect(
           ssmParameterName({
             parameterName: 'sample',
             serviceName: 'ServiceName',
-            domain: 'rpj',
-            contextLevel: 'domain',
+            department: 'rpj',
+            contextLevel: 'department',
             env: 'dev',
           }),
         ).toEqual('/dev/rpj/sample');
@@ -34,7 +34,7 @@ describe('SSM Name Conventions', () => {
           ssmParameterName({
             parameterName: 'sample',
             serviceName: 'ServiceName',
-            domain: 'rpj',
+            department: 'rpj',
             contextLevel: 'service',
             env: 'dev',
           }),

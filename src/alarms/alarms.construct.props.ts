@@ -1,5 +1,5 @@
 import { BaseConstructProps } from '../core/base.construct.props';
-import { Domain, StackEnv } from '../core/constants';
+import { StackEnv } from '../core/constants';
 import { ChatbotSlackChannelIds } from './chatbot/chatbot.construct';
 import { OpsGenieApiKeys } from './OpsGenie/opsgenie.construct';
 import {
@@ -12,7 +12,7 @@ import {
  */
 export interface AlarmTopicNameProps {
   env: StackEnv;
-  domain: Domain;
+  department: string;
   alarmActionType?: AlarmActionType;
 }
 

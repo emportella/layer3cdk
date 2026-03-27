@@ -151,7 +151,7 @@ describe('DynamoTable', () => {
   });
   it('should have ContributorInsightsSpecification, PointInTimeRecoverySpecification, DeletionProtectionEnabled enabled in production envs', () => {
     config = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,
@@ -314,7 +314,7 @@ describe('DynamoTable', () => {
   });
   it('should raise validation errors in prd when pointInTimeRecovery and deletionProtection are disabled', () => {
     const prdConfig = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,

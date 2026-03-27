@@ -30,19 +30,25 @@ export class EksClusterConfig {
    * @returns OIDC provider ARN as String
    */
   getOidcProviderArn(): string {
-    return this.oidcProviderArns[this.config.stackEnv];
+    return (
+      this.oidcProviderArns[this.config.stackEnv] ??
+      this.oidcProviderArns['default']
+    );
   }
   /**
-   * Get the EKS cluster name
-   * @returns eks cluster name as String
+   * Get the EKS cluster namespace rule
+   * @returns namespace rule as String
    */
   getNameSpaceRule(): string {
-    return this.namespaceRules[this.config.stackEnv];
+    return (
+      this.namespaceRules[this.config.stackEnv] ??
+      this.namespaceRules['default'] ??
+      'default'
+    );
   }
 }
 
 const DEFAULT_NAMESPACE_RULES: EnvConfig = {
+  default: 'default',
   dev: '*',
-  stg: 'default',
-  prd: 'default',
 };

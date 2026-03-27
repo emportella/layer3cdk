@@ -149,7 +149,7 @@ describe('ECR', () => {
   });
   it('should create org/ prefixed repository in stg env', () => {
     const stgConfig = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,
@@ -171,7 +171,7 @@ describe('ECR', () => {
   });
   it('should return undefined in prd env', () => {
     const prdConfig = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,

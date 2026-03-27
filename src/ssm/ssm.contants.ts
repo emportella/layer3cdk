@@ -1,1 +1,1 @@
-export type SSMContextLevel = 'global' | 'domain' | 'service';
+export type SSMContextLevel = 'global' | 'department' | 'service';

@@ -29,7 +29,7 @@ describe('resolveEnvProps', () => {
 
   it('should fall back to default when env not present', () => {
     const stgConfig = new BaseConfig({
-      domain: 'rpj',
+      department: 'rpj',
       env: { account: '123456789012', region: 'us-east-1' },
       stackName: 'rpj-test-stack',
       tags: testconfig.tags,

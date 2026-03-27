@@ -4,7 +4,6 @@ import { OPSGENIE_PATH } from './opsgenie.constants';
 import {
   BaseConfig,
   BaseConstruct,
-  StackEnv,
   constructId,
   arnExportName,
 } from '../../core';
@@ -17,9 +16,7 @@ import { CfnOutput, RemovalPolicy } from 'aws-cdk-lib';
 /**
  * Represents a mapping of OpsGenie API keys for different environments.
  */
-export type OpsGenieApiKeys = {
-  [key in StackEnv]: string;
-};
+export type OpsGenieApiKeys = Record<string, string>;
 
 /**
  * Represents an OpsGenie construct.
@@ -38,7 +35,7 @@ export class OpsGenie extends BaseConstruct<SnsAction> {
    */
   public constructor(scope: Construct, props: OpsGenieProps) {
     const { config, apiKeys } = props;
-    const resourceName = `${config.stackEnv}-${config.domain}-opsgenie`;
+    const resourceName = `${config.stackEnv}-${config.department}-opsgenie`;
     super(
       scope,
       'sns-cwaction',

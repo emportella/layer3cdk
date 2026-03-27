@@ -47,14 +47,14 @@ describe('RedisReplicationGroup', () => {
   });
 
   it('should create one replication group with the correct id', () => {
-    const { stackEnv, serviceName, domain } = config;
+    const { stackEnv, serviceName, department } = config;
     const template = Template.fromStack(stack);
     template.resourceCountIs('AWS::ElastiCache::ReplicationGroup', 1);
     template.resourceCountIs('AWS::ElastiCache::SubnetGroup', 1);
 
     const groupId = redisClusterName({
       env: stackEnv,
-      domain: domain,
+      department: department,
       serviceName,
     });
 
@@ -103,7 +103,7 @@ describe('RedisReplicationGroup', () => {
 
   it('should create resources with expected properties in Production', () => {
     const prdConfig = new BaseConfig({
-      domain: config.domain,
+      department: config.department,
       env: config.env,
       stackName: config.stackName,
       tags: config.tags,

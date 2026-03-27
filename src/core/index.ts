@@ -7,3 +7,4 @@ export * from './name.conventions';
 export * from './base.stack';
 export * from './tags';
 export * from './stack.config';
+export * from './layer3cdk.config';

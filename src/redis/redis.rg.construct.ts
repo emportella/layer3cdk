@@ -75,11 +75,11 @@ export class RedisReplicationGroup extends BaseConstruct<CfnReplicationGroup> {
 
   constructor(scope: Construct, props: RedisReplicationGroupConstructProps) {
     const { config, elasticacheProps, elasticacheConfig } = props;
-    const { stackEnv, serviceName, domain, tags } = config;
+    const { stackEnv, serviceName, department, tags } = config;
     const namingProps = {
       env: stackEnv,
       serviceName,
-      domain,
+      department,
     };
 
     const replicationGroupId = redisClusterName(namingProps);

@@ -1,7 +1,7 @@
 import { BaseConfig } from '../core';
 
 export const testconfig = new BaseConfig({
-  domain: 'rpj',
+  department: 'rpj',
   env: { account: '123456789012', region: 'us-east-1' },
   stackName: 'rpj-test-stack',
   tags: {

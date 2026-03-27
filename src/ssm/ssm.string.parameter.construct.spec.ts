@@ -3,7 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { BaseConfig } from '../core';
 import { ssmParameterName } from './ssm.name.conventions';
 import {
-  DomainSSMStringParameter,
+  DepartmentSSMStringParameter,
   GlobalSSMStringParameter,
   ServiceSSMStringParameter,
 } from './ssm.string.parameter.construct';
@@ -15,7 +15,7 @@ describe('SSMStringParameter', () => {
   let config: BaseConfig;
   let ssmStringParameter:
     | GlobalSSMStringParameter
-    | DomainSSMStringParameter
+    | DepartmentSSMStringParameter
     | ServiceSSMStringParameter;
   let parameterName: string;
   const param = {
@@ -39,7 +39,7 @@ describe('SSMStringParameter', () => {
       parameterName = ssmParameterName({
         parameterName: param.name,
         serviceName: config.serviceName,
-        domain: config.domain,
+        department: config.department,
         contextLevel: 'global',
         env: config.stackEnv,
       });
@@ -67,9 +67,9 @@ describe('SSMStringParameter', () => {
     });
   });
 
-  describe('DomainSSMStringParameter', () => {
+  describe('DepartmentSSMStringParameter', () => {
     beforeEach(() => {
-      ssmStringParameter = new DomainSSMStringParameter(stack, {
+      ssmStringParameter = new DepartmentSSMStringParameter(stack, {
         config,
         parameterName: param.name,
         parameterValue: param.value,
@@ -78,8 +78,8 @@ describe('SSMStringParameter', () => {
       parameterName = ssmParameterName({
         parameterName: param.name,
         serviceName: config.serviceName,
-        domain: config.domain,
-        contextLevel: 'domain',
+        department: config.department,
+        contextLevel: 'department',
         env: config.stackEnv,
       });
     });
@@ -117,7 +117,7 @@ describe('SSMStringParameter', () => {
       parameterName = ssmParameterName({
         parameterName: param.name,
         serviceName: config.serviceName,
-        domain: config.domain,
+        department: config.department,
         contextLevel: 'service',
         env: config.stackEnv,
       });

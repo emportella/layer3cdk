@@ -1,38 +1,36 @@
 import { kebabToPascalCase } from '../util';
-import { StackEnv, Domain } from '../core/constants';
-
 /**
  * Provides the naming convention for Redis cluster
- * @param env - dev, stg, prd all lower cased
+ * @param env - environment
  * @param serviceName - names can be provided as kebab-case or PascalCase, 'shared' is the default
- * @param domain - rpj, sch, mob
- * @returns `${env}-${domain}-${serviceName || 'shared'}`
+ * @param department - business unit
+ * @returns `${env}-${department}-${serviceName || 'shared'}`
  */
 export const redisClusterName = (params: {
-  env: StackEnv;
-  domain: Domain;
+  env: string;
+  department: string;
   serviceName?: string;
 }): string => {
-  const { env, domain, serviceName } = params;
+  const { env, department, serviceName } = params;
 
-  return `${env}-${domain}-${kebabToPascalCase(serviceName || 'shared')}`;
+  return `${env}-${department}-${kebabToPascalCase(serviceName || 'shared')}`;
 };
 
 /**
  * Provides the naming convention for Redis subnet group
- * @param env - dev, stg, prd all lower cased
+ * @param env - environment
  * @param serviceName - names can be provided as kebab-case or PascalCase, 'shared' is the default
- * @param domain - rpj, sch, mob
- * @returns `${env}-${domain}-${serviceName || 'shared'}-subnet`
+ * @param department - business unit
+ * @returns `${env}-${department}-${serviceName || 'shared'}-subnet`
  */
 export const redisSubnetGroupName = (params: {
-  env: StackEnv;
-  domain: Domain;
+  env: string;
+  department: string;
   serviceName?: string;
 }): string => {
-  const { env, domain, serviceName } = params;
+  const { env, department, serviceName } = params;
 
-  return `${env}-${domain}-${kebabToPascalCase(
+  return `${env}-${department}-${kebabToPascalCase(
     serviceName || 'shared',
   )}-subnet`;
 };
