@@ -45,7 +45,7 @@ export class BaseStackConfig {
 
   /**
    * Returns the value of stackEnv from context
-   * @returns dev | perf | preprod | prod
+   * @returns dev | stg | prd
    */
   public getStackEnv(): StackEnv {
     return this.stackEnv;
@@ -78,7 +78,7 @@ export class BaseStackConfig {
   private static getStackEnvFromContext(app: App): StackEnv {
     const stackEnv: StackEnv | undefined = app.node.tryGetContext('env');
     if (stackEnv === undefined) {
-      throw new Error('No -c env=<dev|prod|perf|preprod> flag provided.');
+      throw new Error('No -c env=<dev|prd|stg> flag provided.');
     }
     return stackEnv;
   }

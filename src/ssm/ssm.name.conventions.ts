@@ -1,24 +1,18 @@
 import { pascalCaseToKebabCase, trimDashes } from '../util';
-import { StackEnv, Domain } from '../core/constants';
-import { SSMContextLevel } from './ssm.contants';
+import { SsmParameterNameProps } from './ssm.construct.props';
 
 /**
  * Name Conventions for SSM String Parameter
- * @param parameterName - name of parameter
- * @param serviceName - kebab-case-service-name
- * @param domain - rpj, sch, mob
- * @param contextLevel - global, domain, service
- * @param env - dev, perf, preprod, prod
+ * @param props.parameterName - name of parameter
+ * @param props.serviceName - kebab-case-service-name
+ * @param props.domain - rpj, sch, mob
+ * @param props.contextLevel - global, domain, service
+ * @param props.env - dev, stg, prd
  * @returns `/${env}/${contextValue[contextLevel]}/${parameterName}`
  * @example `/dev/rpagency/sample`
  */
-export const ssmParameterName = (
-  parameterName: string,
-  serviceName: string,
-  domain: Domain,
-  contextLevel: SSMContextLevel,
-  env: StackEnv,
-): string => {
+export const ssmParameterName = (props: SsmParameterNameProps): string => {
+  const { parameterName, serviceName, domain, contextLevel, env } = props;
   const contextValue = {
     global: 'global',
     domain,

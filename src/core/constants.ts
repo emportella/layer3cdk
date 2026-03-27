@@ -1,7 +1,7 @@
 /**
  * Represents the possible environments for Layer3CDK.
  */
-export type StackEnv = 'dev' | 'prod' | 'perf' | 'preprod';
+export type StackEnv = 'dev' | 'prd' | 'stg';
 
 /**
  * Represents the available AWS regions.
@@ -46,7 +46,8 @@ export type ResourceType =
   | 'ssm-string-parameter'
   | 'ecr'
   | 'ecr-app'
-  | 'redis-replication-group';
+  | 'redis-replication-group'
+  | 's3-static-site';
 
 /**
  * Represents the available domains.

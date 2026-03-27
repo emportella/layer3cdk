@@ -26,24 +26,22 @@ describe('EDABackgroundTasksQueue', () => {
     eventName = 'TestEventCreated';
     config = testconfig;
     dlq = new DLQ(stack, config);
-    dlqfifo = new DLQFifo(stack, config);
-    backgroundTaskQueue = new EDABackgroundTasksQueue(
-      stack,
+    dlqfifo = new DLQFifo(stack, { config });
+    backgroundTaskQueue = new EDABackgroundTasksQueue(stack, {
       eventName,
-      dlq.getDlq(),
+      dlq: dlq.getDlq(),
       config,
-    );
+    });
     backgroundTaskQueueRef = stack.getLogicalId(
       stack.node.findChild(
         constructId(config.stackName, 'sqs', backgroundTaskQueue.resourceName),
       ).node.defaultChild as CfnElement,
     );
-    backgroundTaskQueueFifo = new EDABackgroundTasksQueueFifo(
-      stack,
+    backgroundTaskQueueFifo = new EDABackgroundTasksQueueFifo(stack, {
       eventName,
-      dlqfifo.getDlq(),
+      dlq: dlqfifo.getDlq(),
       config,
-    );
+    });
   });
   it('should create 4 queues', () => {
     Template.fromStack(stack).resourceCountIs('AWS::SQS::Queue', 4);
@@ -170,26 +168,22 @@ describe('EDABackgroundTasksQueue', () => {
   });
   it('EDAStandardFifo Should throw error if QueueProp has fifo false', () => {
     expect(() => {
-      new EDABackgroundTasksQueueFifo(
-        stack,
-        'eventName1',
-        dlqfifo.getDlq(),
+      new EDABackgroundTasksQueueFifo(stack, {
+        eventName: 'eventName1',
+        dlq: dlqfifo.getDlq(),
         config,
-        {
-          fifo: false,
-        },
-      );
+        queueProps: { fifo: false },
+      });
       return Template.fromStack(stack);
     }).toThrow("Non-FIFO queue name may not end in '.fifo'");
   });
   it('EDAStandardFifo Should throw error if dlq is not fifo', () => {
     expect(() => {
-      new EDABackgroundTasksQueueFifo(
-        stack,
-        'eventName1',
-        dlq.getDlq(),
+      new EDABackgroundTasksQueueFifo(stack, {
+        eventName: 'eventName1',
+        dlq: dlq.getDlq(),
         config,
-      );
+      });
       return Template.fromStack(stack);
     }).toThrow('Queues that are FIFO requires dlq to be a FIFO queue');
   });

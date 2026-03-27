@@ -19,12 +19,18 @@ describe('Alarms Name Conventions', () => {
   });
   describe('alarmTopicName', () => {
     it('should return the correct topic name', () => {
-      expect(alarmTopicName('dev', 'rpj')).toEqual('dev-rpj-alarm-action');
+      expect(alarmTopicName({ env: 'dev', domain: 'rpj' })).toEqual(
+        'dev-rpj-alarm-action',
+      );
     });
     it('should return the correct topic name with optional alarm action type', () => {
-      expect(alarmTopicName('dev', 'rpj', 'opsGenie')).toEqual(
-        'dev-rpj-alarm-action-opsGenie',
-      );
+      expect(
+        alarmTopicName({
+          env: 'dev',
+          domain: 'rpj',
+          alarmActionType: 'opsGenie',
+        }),
+      ).toEqual('dev-rpj-alarm-action-opsGenie');
     });
   });
 });

@@ -37,7 +37,7 @@ export const DYNAMO_ENVIRONMENTS_PROPS: BaseEnvProps<DynamoConfig> = {
     pointInTimeRecovery: false,
     contributorInsights: false,
   },
-  prod: {
+  prd: {
     tableClass: TableClass.STANDARD,
     billing: Billing.provisioned({
       readCapacity: Capacity.autoscaled({ minCapacity: 10, maxCapacity: 50 }),

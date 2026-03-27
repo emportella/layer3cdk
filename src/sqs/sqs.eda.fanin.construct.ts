@@ -1,36 +1,40 @@
-import { Effect, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
-import { DeadLetterQueue, QueueProps } from 'aws-cdk-lib/aws-sqs';
+import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { BaseConfig, StackEnv, awsArn } from '../core';
+import { awsArn } from '../core';
 import { resolveWithOverrides } from '../core/base.construct.env.props';
+import {
+  EDAQueueProps,
+  GrantFaninPublishingProps,
+} from './sqs.construct.props';
 import { sqsQueueName } from './sqs.name.conventions';
 import { SQSBase, SQSBaseFifo } from './sqs.base';
 import { sqsBaseEnvProps, sqsFifoBaseEnvProps } from './sqs.default.props';
 
-interface FaninQueue {
-  eventName: string;
-  serviceName: string;
-}
-
 /**
  * Grants an IAM role permission to send messages to one or more fan-in queues
  * owned by other services. Use this when a producer needs cross-service publish access.
- * @param role - The IAM role to grant permissions to.
- * @param faninQueues - Array of target queues identified by service and event name.
- * @param region - AWS region for ARN construction.
- * @param accountId - AWS account ID for ARN construction.
- * @param env - Stack environment (dev, perf, preprod, prod).
+ *
+ * @param props.role - The IAM role to grant permissions to.
+ * @param props.faninQueues - Array of target queues identified by service and event name.
+ * @param props.region - AWS region for ARN construction.
+ * @param props.accountId - AWS account ID for ARN construction.
+ * @param props.env - Stack environment (dev, stg, prd).
  */
-export function grantFaninPublishing(
-  role: Role,
-  faninQueues: FaninQueue[],
-  region: string,
-  accountId: string,
-  env: StackEnv,
-): void {
+export function grantFaninPublishing(props: GrantFaninPublishingProps): void {
+  const { role, faninQueues, region, accountId, env } = props;
   const queueArns = faninQueues.map(({ serviceName, eventName }) => {
-    const queueName = sqsQueueName(env, 'fanin', serviceName, eventName);
-    return awsArn(region, accountId, 'sqs', queueName);
+    const queueName = sqsQueueName({
+      env,
+      queueType: 'fanin',
+      serviceName,
+      eventName,
+    });
+    return awsArn({
+      region,
+      accountId,
+      resourceType: 'sqs',
+      resourceName: queueName,
+    });
   });
   const statement = new PolicyStatement({
     sid: 'AllowFaninPublish',
@@ -46,19 +50,14 @@ export function grantFaninPublishing(
  * Use {@link grantFaninPublishing} to allow remote services to send to this queue.
  */
 export class EDAFaninQueue extends SQSBase {
-  constructor(
-    scope: Construct,
-    eventName: string,
-    dlq: DeadLetterQueue,
-    config: BaseConfig,
-    queueProps?: QueueProps | undefined,
-  ) {
-    const resourceName = sqsQueueName(
-      config.stackEnv,
-      'fanin',
-      config.serviceName,
+  constructor(scope: Construct, props: EDAQueueProps) {
+    const { config, eventName, dlq, queueProps } = props;
+    const resourceName = sqsQueueName({
+      env: config.stackEnv,
+      queueType: 'fanin',
+      serviceName: config.serviceName,
       eventName,
-    );
+    });
     const finalQueueProps = resolveWithOverrides(
       sqsBaseEnvProps(resourceName, dlq),
       config,
@@ -70,20 +69,15 @@ export class EDAFaninQueue extends SQSBase {
 
 /** FIFO variant of {@link EDAFaninQueue} with content-based deduplication. */
 export class EDAFaninQueueFifo extends SQSBaseFifo {
-  constructor(
-    scope: Construct,
-    eventName: string,
-    dlq: DeadLetterQueue,
-    config: BaseConfig,
-    queueProps?: QueueProps | undefined,
-  ) {
-    const resourceName = sqsQueueName(
-      config.stackEnv,
-      'fanin',
-      config.serviceName,
+  constructor(scope: Construct, props: EDAQueueProps) {
+    const { config, eventName, dlq, queueProps } = props;
+    const resourceName = sqsQueueName({
+      env: config.stackEnv,
+      queueType: 'fanin',
+      serviceName: config.serviceName,
       eventName,
-      true,
-    );
+      isFifo: true,
+    });
     const finalQueueProps = resolveWithOverrides(
       sqsFifoBaseEnvProps(resourceName, dlq),
       config,

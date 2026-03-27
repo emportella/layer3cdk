@@ -5,6 +5,7 @@ import { Construct } from 'constructs';
 import { SSMContextLevel } from './ssm.contants';
 
 import { BaseConfig, BaseConstruct, constructId, arnExportName } from '../core';
+import { SSMStringParameterProps } from './ssm.construct.props';
 import { ssmParameterName } from './ssm.name.conventions';
 
 class SSMStringParameter extends BaseConstruct<StringParameter> {
@@ -17,13 +18,13 @@ class SSMStringParameter extends BaseConstruct<StringParameter> {
     config: BaseConfig,
     contextLevel: SSMContextLevel,
   ) {
-    const ssmStringParameterName = ssmParameterName(
+    const ssmStringParameterName = ssmParameterName({
       parameterName,
-      config.serviceName,
-      config.domain,
+      serviceName: config.serviceName,
+      domain: config.domain,
       contextLevel,
-      config.stackEnv,
-    );
+      env: config.stackEnv,
+    });
 
     super(scope, 'ssm-string-parameter', ssmStringParameterName, config);
 
@@ -68,13 +69,14 @@ class SSMStringParameter extends BaseConstruct<StringParameter> {
  * Parameter path: `/<env>/global/<parameterName>`
  */
 export class GlobalSSMStringParameter extends SSMStringParameter {
-  constructor(
-    scope: Construct,
-    parameterName: string,
-    parameterValue: string,
-    config: BaseConfig,
-  ) {
-    super(scope, parameterName, parameterValue, config, 'global');
+  constructor(scope: Construct, props: SSMStringParameterProps) {
+    super(
+      scope,
+      props.parameterName,
+      props.parameterValue,
+      props.config,
+      'global',
+    );
   }
 }
 
@@ -83,13 +85,14 @@ export class GlobalSSMStringParameter extends SSMStringParameter {
  * Parameter path: `/<env>/<domain>/<parameterName>`
  */
 export class DomainSSMStringParameter extends SSMStringParameter {
-  constructor(
-    scope: Construct,
-    parameterName: string,
-    parameterValue: string,
-    config: BaseConfig,
-  ) {
-    super(scope, parameterName, parameterValue, config, 'domain');
+  constructor(scope: Construct, props: SSMStringParameterProps) {
+    super(
+      scope,
+      props.parameterName,
+      props.parameterValue,
+      props.config,
+      'domain',
+    );
   }
 }
 
@@ -98,12 +101,13 @@ export class DomainSSMStringParameter extends SSMStringParameter {
  * Parameter path: `/<env>/<domain>/<serviceName>/<parameterName>`
  */
 export class ServiceSSMStringParameter extends SSMStringParameter {
-  constructor(
-    scope: Construct,
-    parameterName: string,
-    parameterValue: string,
-    config: BaseConfig,
-  ) {
-    super(scope, parameterName, parameterValue, config, 'service');
+  constructor(scope: Construct, props: SSMStringParameterProps) {
+    super(
+      scope,
+      props.parameterName,
+      props.parameterValue,
+      props.config,
+      'service',
+    );
   }
 }

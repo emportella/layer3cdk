@@ -5,8 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "prebuild": "rm -rf dist",
     "prepare": "husky && npm run build",
+    "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "npm run format -- --check",
     "format:write": "npm run format -- --write",
@@ -26,7 +27,10 @@
   "engines": {
     "node": ">=20.0.0"
   },
-  "author": "@emportella",
+  "author": {
+    "name": "Eduardo Portella",
+    "email": "empsoftwareengineer@gmail.com"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/emportella/layer3cdk/issues"

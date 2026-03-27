@@ -4,7 +4,7 @@ import { StackEnv } from '../core/constants';
 /**
  * IAM Role Name Conventions for Service Accounts
  * @param serviceName - kebab-case-service-name
- * @param env - dev, perf, preprod, prod
+ * @param env - dev, stg, prd
  * @returns `${serviceName}-eks-service-account-${env}`
  * @example `rptasks-eks-service-account-dev`
  */

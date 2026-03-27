@@ -9,14 +9,13 @@ import { TablePropsV2, TableV2 } from 'aws-cdk-lib/aws-dynamodb';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import {
-  BaseConfig,
   BaseConstruct,
-  BaseEnvProps,
   resolveEnvProps,
   resolveAndMergeEnvProps,
   constructId,
   arnExportName,
 } from '../core';
+import { DynamoTableProps as DynamoTableConstructProps } from './dynamo.construct.props';
 import { dynamoTableName } from './dynamo.name.conventions';
 import {
   DynamoProps,
@@ -44,13 +43,8 @@ export class DynamoTable extends BaseConstruct<TableV2> {
   readonly tableProps: TablePropsV2;
   protected readonly alarmsThresholds: DynamoAlarmThresholds;
 
-  constructor(
-    scope: Construct,
-    tableName: string,
-    config: BaseConfig,
-    dynamoProps: BaseEnvProps<DynamoProps>,
-    dynamoConfig?: BaseEnvProps<DynamoConfig>,
-  ) {
+  constructor(scope: Construct, props: DynamoTableConstructProps) {
+    const { config, tableName, dynamoProps, dynamoConfig } = props;
     const resolvedTableName = dynamoTableName(tableName, config);
     super(scope, 'dynamodb', resolvedTableName, config);
     this.tableName = resolvedTableName;
@@ -96,12 +90,12 @@ export class DynamoTable extends BaseConstruct<TableV2> {
 
   /**
    * Validates the properties of the Dynamo construct.
-   * If the environment is 'prod', it checks if Point in Time Recovery and Deletion Protection are enabled.
+   * If the environment is 'prd', it checks if Point in Time Recovery and Deletion Protection are enabled.
    * If any validation errors are found, they are added to the validationErrors array.
    */
   protected validateProps(): void {
     const validationErrors: string[] = [];
-    if (this.config.stackEnv === 'prod') {
+    if (this.config.stackEnv === 'prd') {
       if (
         this.tableProps.pointInTimeRecovery === false ||
         this.tableProps.pointInTimeRecovery === undefined

@@ -4,11 +4,11 @@ import { dynamoTableName } from './dynamo.name.conventions';
 describe('Dynamo Name Conventions', () => {
   describe('dynamoTableName', () => {
     it('should return the correct table name', () => {
-      const config = new BaseConfig(
-        'rpj',
-        { account: '123456789012', region: 'us-east-1' },
-        'rpj-test-stack',
-        {
+      const config = new BaseConfig({
+        domain: 'rpj',
+        env: { account: '123456789012', region: 'us-east-1' },
+        stackName: 'rpj-test-stack',
+        tags: {
           'tag:tagSchemaVersion': '0.1',
           'tag:env': 'dev',
           'tag:ownership:department': 'productDevelopment',
@@ -18,10 +18,10 @@ describe('Dynamo Name Conventions', () => {
           'tag:tech:repository': 'testRepo',
           'tag:tech:managedBy': 'cdk',
         },
-        'dev',
-        'rpj-test-app',
-        'My description',
-      );
+        stackEnv: 'dev',
+        serviceName: 'rpj-test-app',
+        description: 'My description',
+      });
       expect(dynamoTableName('tableName', config)).toEqual(
         'dev-RpjTestApp-TableName',
       );

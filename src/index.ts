@@ -8,3 +8,4 @@ export * from './sqs';
 export * from './ssm';
 export * from './ecr';
 export * from './config';
+export * from './static-site-s3';

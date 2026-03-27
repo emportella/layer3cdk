@@ -14,12 +14,13 @@ describe('ServiceAccountRole', () => {
   beforeEach(() => {
     stack = new Stack();
     config = testconfig;
-    role = new ServiceAccountRole(stack, config, {
-      dev: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/DEV_CLUSTER',
-      perf: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PERF_CLUSTER',
-      preprod:
-        'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PREPROD_CLUSTER',
-      prod: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PROD_CLUSTER',
+    role = new ServiceAccountRole(stack, {
+      config,
+      oidcProviderArns: {
+        dev: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/DEV_CLUSTER',
+        stg: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/STG_CLUSTER',
+        prd: 'arn:aws:iam::123456789012:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/PRD_CLUSTER',
+      },
     });
     roleName = serviceAccountRoleName(config.serviceName, config.stackEnv);
   });

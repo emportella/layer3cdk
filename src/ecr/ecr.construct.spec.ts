@@ -13,11 +13,10 @@ describe('ECR', () => {
   beforeEach(() => {
     stack = new Stack();
     config = testconfig;
-    repository = ApplicationRepository.create(
-      stack,
-      'rpj-rp-tasks-service',
+    repository = ApplicationRepository.create(stack, {
       config,
-    ) as ApplicationRepository;
+      repositoryName: 'rpj-rp-tasks-service',
+    }) as ApplicationRepository;
   });
   it('should create a ECR Repository with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::ECR::Repository', {
@@ -147,5 +146,44 @@ describe('ECR', () => {
     Template.fromStack(stack).hasResource('AWS::ECR::Repository', {
       UpdateReplacePolicy: 'Delete',
     });
+  });
+  it('should create org/ prefixed repository in stg env', () => {
+    const stgConfig = new BaseConfig({
+      domain: config.domain,
+      env: config.env,
+      stackName: config.stackName,
+      tags: config.tags,
+      stackEnv: 'stg',
+      serviceName: config.serviceName,
+      description: config.description,
+    });
+    const stgStack = new Stack();
+    const stgRepo = ApplicationRepository.create(stgStack, {
+      config: stgConfig,
+      repositoryName: 'rpj-rp-tasks-service',
+    });
+    expect(stgRepo).toBeDefined();
+    Template.fromStack(stgStack).hasResourceProperties('AWS::ECR::Repository', {
+      RepositoryName: 'org/rpj-rp-tasks-service',
+      ImageScanningConfiguration: { ScanOnPush: true },
+      ImageTagMutability: 'MUTABLE',
+    });
+  });
+  it('should return undefined in prd env', () => {
+    const prdConfig = new BaseConfig({
+      domain: config.domain,
+      env: config.env,
+      stackName: config.stackName,
+      tags: config.tags,
+      stackEnv: 'prd',
+      serviceName: config.serviceName,
+      description: config.description,
+    });
+    const prdStack = new Stack();
+    const prdRepo = ApplicationRepository.create(prdStack, {
+      config: prdConfig,
+      repositoryName: 'rpj-rp-tasks-service',
+    });
+    expect(prdRepo).toBeUndefined();
   });
 });

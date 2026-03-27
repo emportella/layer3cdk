@@ -25,6 +25,7 @@ import {
 import { chatbotRoleName, slackConfigName } from '../alarms.name.conventions';
 import { createAlarmTopic } from '../alarm.topic';
 import { BaseConfig } from '../../core/base.config';
+import { ChatbotSlackChannelProps } from '../alarms.construct.props';
 
 /**
  * Slack channel configuration for AWS Chatbot
@@ -45,7 +46,7 @@ export type ChatbotSlackChannelIds = {
  * Creates an SNS topic, a Slack channel configuration, and the required IAM role.
  * Call {@link ChatbotSlackChannnel.getSnsAction} to wire alarms to Slack.
  *
- * @param slackChannelIds - Map of Slack channel IDs per environment (dev, perf, preprod, prod).
+ * @param slackChannelIds - Map of Slack channel IDs per environment (dev, stg, prd).
  * @param slackWorkspaceId - The Slack workspace ID configured in AWS Chatbot.
  */
 export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguration> {
@@ -54,12 +55,8 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
   private readonly topic: Topic;
   private readonly snsAction: SnsAction;
 
-  constructor(
-    scope: Construct,
-    slackChannelIds: ChatbotSlackChannelIds,
-    config: BaseConfig,
-    slackWorkspaceId: string,
-  ) {
+  constructor(scope: Construct, props: ChatbotSlackChannelProps) {
+    const { config, slackChannelIds, slackWorkspaceId } = props;
     const resourceName = `${config.stackEnv}-${config.domain}-chatBot-slack-alarm`;
     super(scope, 'chatbot', resourceName, config);
     this.topic = this.createTopic(config);

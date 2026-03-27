@@ -1,5 +1,5 @@
 import { StackEnv, Domain } from '../core/constants';
-import { AlarmActionType } from './alarmAction/alarmActions.constants';
+import { AlarmTopicNameProps } from './alarms.construct.props';
 
 /**
  * Generates a Slack configuration name based on the provided environment and domain.
@@ -23,15 +23,12 @@ export const chatbotRoleName = (env: StackEnv, domain: Domain): string => {
 
 /**
  * Generates the name for an SNS action topic.
- * @param env - The environment.
- * @param domain - The domain.
- * @param optionalAlarmActionType - An optional alarm action type to append to the topic name.
+ * @param props.env - The environment.
+ * @param props.domain - The domain.
+ * @param props.alarmActionType - An optional alarm action type to append to the topic name.
  * @returns The generated SNS action topic name.
  */
-export const alarmTopicName = (
-  env: StackEnv,
-  domain: Domain,
-  optionalAlarmActionType?: AlarmActionType,
-): string => {
-  return `${env}-${domain}-alarm-action${optionalAlarmActionType ? `-${optionalAlarmActionType}` : ''}`;
+export const alarmTopicName = (props: AlarmTopicNameProps): string => {
+  const { env, domain, alarmActionType } = props;
+  return `${env}-${domain}-alarm-action${alarmActionType ? `-${alarmActionType}` : ''}`;
 };

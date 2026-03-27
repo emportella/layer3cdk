@@ -16,7 +16,7 @@ describe('Secrets', () => {
 
   describe('GlobalSecrets', () => {
     beforeEach(() => {
-      new GlobalSecrets(stack, parameterName, config);
+      new GlobalSecrets(stack, { config, parameterName });
     });
 
     it('should create a Secrets Manager secret', () => {

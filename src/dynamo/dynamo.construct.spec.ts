@@ -41,20 +41,19 @@ describe('DynamoTable', () => {
     };
     envDynamicConfig = {
       default: dynamoConfig,
-      prod: dynamoConfig,
+      prd: dynamoConfig,
     };
 
     envDynamicProps = {
       default: dynamoProps,
-      prod: dynamoProps,
+      prd: dynamoProps,
     };
-    dynamoTable = new DynamoTable(
-      stack,
-      tableName,
+    dynamoTable = new DynamoTable(stack, {
       config,
-      envDynamicProps,
-      envDynamicConfig,
-    );
+      tableName,
+      dynamoProps: envDynamicProps,
+      dynamoConfig: envDynamicConfig,
+    });
   });
   it('should create a DynamoDB table with the correct name', () => {
     Template.fromStack(stack).hasResourceProperties(
@@ -151,23 +150,22 @@ describe('DynamoTable', () => {
     );
   });
   it('should have ContributorInsightsSpecification, PointInTimeRecoverySpecification, DeletionProtectionEnabled enabled in production envs', () => {
-    config = new BaseConfig(
-      config.domain,
-      config.env,
-      config.stackName,
-      config.tags,
-      'prod',
-      config.serviceName,
-      config.description,
-    );
+    config = new BaseConfig({
+      domain: config.domain,
+      env: config.env,
+      stackName: config.stackName,
+      tags: config.tags,
+      stackEnv: 'prd',
+      serviceName: config.serviceName,
+      description: config.description,
+    });
 
-    new DynamoTable(
-      stack,
-      tableName,
+    new DynamoTable(stack, {
       config,
-      envDynamicProps,
-      envDynamicConfig,
-    );
+      tableName,
+      dynamoProps: envDynamicProps,
+      dynamoConfig: envDynamicConfig,
+    });
     Template.fromStack(stack).hasResourceProperties(
       'AWS::DynamoDB::GlobalTable',
       {
@@ -278,5 +276,106 @@ describe('DynamoTable', () => {
       TreatMissingData: 'ignore',
       ActionsEnabled: false,
     });
+  });
+  it('should create a CfnOutput for the table ARN when outputArn is called', () => {
+    dynamoTable.outputArn();
+    Template.fromStack(stack).hasOutput('*', {
+      Export: { Name: Match.stringLikeRegexp('.*arn$') },
+      Description: `The ARN of the DynamoDB table ${dynamoTable.tableName}`,
+    });
+  });
+  it('should grant read-only data permissions to an IAM role', () => {
+    const role = new Role(stack, 'ReadOnlyRole', {
+      assumedBy: new ServicePrincipal('lambda.amazonaws.com'),
+    });
+    dynamoTable.grantReadOnlyPolicies(role);
+    Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
+      PolicyDocument: {
+        Statement: Match.arrayWith([
+          Match.objectLike({
+            Action: Match.arrayWith([
+              'dynamodb:BatchGetItem',
+              'dynamodb:GetItem',
+              'dynamodb:Scan',
+            ]),
+            Effect: 'Allow',
+          }),
+        ]),
+        Version: '2012-10-17',
+      },
+    });
+  });
+  it('should apply removal policy RETAIN to the table', () => {
+    dynamoTable.resourceRemovalPolicy(RemovalPolicy.RETAIN);
+    Template.fromStack(stack).hasResource('AWS::DynamoDB::GlobalTable', {
+      UpdateReplacePolicy: 'Retain',
+      DeletionPolicy: 'Retain',
+    });
+  });
+  it('should raise validation errors in prd when pointInTimeRecovery and deletionProtection are disabled', () => {
+    const prdConfig = new BaseConfig({
+      domain: config.domain,
+      env: config.env,
+      stackName: config.stackName,
+      tags: config.tags,
+      stackEnv: 'prd',
+      serviceName: config.serviceName,
+      description: config.description,
+    });
+    const prdProps: BaseEnvProps<DynamoProps> = {
+      default: {
+        partitionKey: { name: 'id', type: AttributeType.STRING },
+      },
+    };
+    const prdDynamoConfig: BaseEnvProps<DynamoConfig> = {
+      default: {
+        billing: Billing.provisioned({
+          readCapacity: Capacity.autoscaled({
+            minCapacity: 5,
+            maxCapacity: 100,
+            targetUtilizationPercent: 80,
+          }),
+          writeCapacity: Capacity.autoscaled({
+            minCapacity: 5,
+            maxCapacity: 100,
+          }),
+        }),
+        alarmReadThreshold: 90,
+        alarmWriteThreshold: 90,
+        pointInTimeRecovery: false,
+        deletionProtection: false,
+      },
+      prd: {
+        billing: Billing.provisioned({
+          readCapacity: Capacity.autoscaled({
+            minCapacity: 5,
+            maxCapacity: 100,
+            targetUtilizationPercent: 80,
+          }),
+          writeCapacity: Capacity.autoscaled({
+            minCapacity: 5,
+            maxCapacity: 100,
+          }),
+        }),
+        alarmReadThreshold: 90,
+        alarmWriteThreshold: 90,
+        pointInTimeRecovery: false,
+        deletionProtection: false,
+      },
+    };
+    const prdStack = new Stack();
+    const prdTable = new DynamoTable(prdStack, {
+      config: prdConfig,
+      tableName: 'prdTable',
+      dynamoProps: prdProps,
+      dynamoConfig: prdDynamoConfig,
+    });
+    const errors = prdTable.node.validate();
+    expect(errors).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('Point in Time Recovery must be enabled'),
+        expect.stringContaining('Deletion Protection must be enabled'),
+      ]),
+    );
   });
 });

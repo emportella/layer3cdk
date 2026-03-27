@@ -1,6 +1,11 @@
-import { CfnElement, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { CfnElement, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
+import {
+  ComparisonOperator,
+  Stats,
+  TreatMissingData,
+} from 'aws-cdk-lib/aws-cloudwatch';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { FilterOrPolicy, SubscriptionFilter, Topic } from 'aws-cdk-lib/aws-sns';
 import { BaseConfig, constructId } from '../core';
@@ -26,24 +31,22 @@ describe('EDAStandardQueue', () => {
     eventName = 'TestEventCreated';
     config = testconfig;
     dlq = new DLQ(stack, config);
-    standardQueue = new EDAStandardQueue(
-      stack,
+    standardQueue = new EDAStandardQueue(stack, {
       eventName,
-      dlq.getDlq(),
+      dlq: dlq.getDlq(),
       config,
-    );
+    });
     standardQueueRef = stack.getLogicalId(
       stack.node.findChild(
         constructId(config.stackName, 'sqs', standardQueue.resourceName),
       ).node.defaultChild as CfnElement,
     );
-    dlqFifo = new DLQFifo(stack, config);
-    standardQueueFifo = new EDAStandardQueueFifo(
-      stack,
+    dlqFifo = new DLQFifo(stack, { config });
+    standardQueueFifo = new EDAStandardQueueFifo(stack, {
       eventName,
-      dlqFifo.getDlq(),
+      dlq: dlqFifo.getDlq(),
       config,
-    );
+    });
   });
   it('should create 4 queues', () => {
     Template.fromStack(stack).resourceCountIs('AWS::SQS::Queue', 4);
@@ -167,14 +170,21 @@ describe('EDAStandardQueue', () => {
   });
   it('EDAStandardFifo Should throw error if QueueProp has fifo false', () => {
     expect(() => {
-      new EDAStandardQueueFifo(stack, 'eventName1', dlqFifo.getDlq(), config, {
-        fifo: false,
+      new EDAStandardQueueFifo(stack, {
+        eventName: 'eventName1',
+        dlq: dlqFifo.getDlq(),
+        config,
+        queueProps: { fifo: false },
       });
       return Template.fromStack(stack);
     }).toThrow("Non-FIFO queue name may not end in '.fifo'");
   });
   it('EDAStandardFifo Should throw error if dlq is not fifo', () => {
-    new EDAStandardQueueFifo(stack, 'eventName1', dlq.getDlq(), config);
+    new EDAStandardQueueFifo(stack, {
+      eventName: 'eventName1',
+      dlq: dlq.getDlq(),
+      config,
+    });
     expect(() => Template.fromStack(stack)).toThrow(
       'Queues that are FIFO requires dlq to be a FIFO queue',
     );
@@ -199,17 +209,17 @@ describe('EDAStandardQueue', () => {
     });
   });
   it('EDAStandardQueueFifo.subscribeWithCfnSubscription should createa subscription with a filter', () => {
-    standardQueueFifo.subscribeWithCfnSubscription(
-      'arn:aws:sns:us-east-1:123456789012:testsns',
-      'MessageBody',
-      {
+    standardQueueFifo.subscribeWithCfnSubscription({
+      arn: 'arn:aws:sns:us-east-1:123456789012:testsns',
+      filterPolicyScope: 'MessageBody',
+      filterPolicy: {
         target_object: ['application', 'requirement'],
         $or: [
           { automatically_processed_in_prepayment: [true] },
           { automatically_processed_in_presubmission: [true] },
         ],
       },
-    );
+    });
     Template.fromStack(stack).hasResourceProperties('AWS::SNS::Subscription', {
       FilterPolicy: {
         target_object: ['application', 'requirement'],
@@ -218,6 +228,74 @@ describe('EDAStandardQueue', () => {
           { automatically_processed_in_presubmission: [true] },
         ],
       },
+    });
+  });
+  it('subscribeFromSNSTopicImport should subscribe to an imported SNS topic', () => {
+    standardQueue.subscribeFromSNSTopicImport('output-dev-MyTopic-arn');
+    Template.fromStack(stack).hasResourceProperties('AWS::SNS::Subscription', {
+      Protocol: 'sqs',
+    });
+  });
+  it('subscribeFromSnsTopicArnWithProps should subscribe with filter props', () => {
+    standardQueue.subscribeFromSnsTopicArnWithProps(
+      'arn:aws:sns:us-east-1:123456789012:testsns',
+      {
+        filterPolicyWithMessageBody: {
+          target_object: FilterOrPolicy.filter(
+            SubscriptionFilter.stringFilter({
+              allowlist: ['test'],
+            }),
+          ),
+        },
+      },
+    );
+    Template.fromStack(stack).hasResourceProperties('AWS::SNS::Subscription', {
+      FilterPolicy: {
+        target_object: ['test'],
+      },
+    });
+  });
+  it('should apply RETAIN removal policy to the standard queue', () => {
+    const freshStack = new Stack();
+    const freshDlq = new DLQ(freshStack, config);
+    const queue = new EDAStandardQueue(freshStack, {
+      eventName: 'RemovalTest',
+      dlq: freshDlq.getDlq(),
+      config,
+    });
+    queue.resourceRemovalPolicy(RemovalPolicy.RETAIN);
+    Template.fromStack(freshStack).hasResource('AWS::SQS::Queue', {
+      Properties: {
+        QueueName: 'dev-st-RpjTestApp-RemovalTest',
+      },
+      UpdateReplacePolicy: 'Retain',
+      DeletionPolicy: 'Retain',
+    });
+  });
+  it('setCustomAlarms should create a custom CloudWatch alarm on a DLQ', () => {
+    dlq.setCustomAlarms(
+      (resource, resourceName) => ({
+        metric: resource.metricApproximateNumberOfMessagesVisible({
+          period: Duration.minutes(1),
+          statistic: Stats.MAXIMUM,
+        }),
+        threshold: 10,
+        alarmName: `${resourceName} Custom Alarm`,
+        evaluationPeriods: 1,
+        comparisonOperator:
+          ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        treatMissingData: TreatMissingData.IGNORE,
+      }),
+      'custom-metric',
+    );
+    Template.fromStack(stack).resourceCountIs('AWS::CloudWatch::Alarm', 1);
+    Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
+      AlarmName: 'dev-dlq-RpjTestApp Custom Alarm',
+      ActionsEnabled: false,
+      Threshold: 10,
+      EvaluationPeriods: 1,
+      ComparisonOperator: 'GreaterThanOrEqualToThreshold',
+      TreatMissingData: 'ignore',
     });
   });
 });

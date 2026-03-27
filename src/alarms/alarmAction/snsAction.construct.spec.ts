@@ -12,35 +12,60 @@ describe('SNSAction', () => {
     config = testconfig;
   });
   it('should create an SNS action construct', () => {
-    snsAction = new AlarmSnsAction(stack, config, {
-      opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+    snsAction = new AlarmSnsAction(stack, {
+      config,
+      snsArns: {
+        opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+      },
     });
     expect(snsAction).toBeDefined();
   });
   it('should return the map of SNS actions', () => {
-    snsAction = new AlarmSnsAction(stack, config, {
-      opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+    snsAction = new AlarmSnsAction(stack, {
+      config,
+      snsArns: {
+        opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+      },
     });
     const actionsMap = snsAction.getMapSnsActions();
     expect(actionsMap.size).toEqual(1);
     expect(actionsMap.has('opsGenie')).toBe(true);
   });
   it('should retrieve the SNS action for the specified alarm action type', () => {
-    snsAction = new AlarmSnsAction(stack, config, {
-      opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+    snsAction = new AlarmSnsAction(stack, {
+      config,
+      snsArns: {
+        opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+      },
     });
     const snsActionType = 'opsGenie';
     const retrievedSnsAction = snsAction.getSnsAction(snsActionType);
     expect(retrievedSnsAction).toBeDefined();
   });
   it('should retrieve the ARNs of the SNS topics associated with this construct', () => {
-    snsAction = new AlarmSnsAction(stack, config, {
-      opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+    snsAction = new AlarmSnsAction(stack, {
+      config,
+      snsArns: {
+        opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+      },
     });
     const snsTopicArns = snsAction.getArns();
     expect(snsTopicArns.length).toEqual(1);
     expect(snsTopicArns[0]).toEqual(
       'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
     );
+  });
+  it('should return an array of SnsAction objects via getSnsActions', () => {
+    snsAction = new AlarmSnsAction(stack, {
+      config,
+      snsArns: {
+        opsGenie: 'arn:aws:sns:us-east-1:123456789012:opsGenieTopic',
+        slack: 'arn:aws:sns:us-east-1:123456789012:slackTopic',
+      },
+    });
+    const actions = snsAction.getSnsActions();
+    expect(actions.length).toEqual(2);
+    expect(actions[0]).toBeDefined();
+    expect(actions[1]).toBeDefined();
   });
 });

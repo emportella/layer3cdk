@@ -16,7 +16,7 @@ const config: BaseConfig = testconfig;
 const envProps: BaseEnvProps<Props> = {
   default: { test: 'default test', test2: 'default test2' },
   dev: { test: 'dev test', test2: 'dev test2' },
-  prod: { test: 'prod test', test2: 'prod test2' },
+  prd: { test: 'prd test', test2: 'prd test2' },
 };
 
 describe('resolveEnvProps', () => {
@@ -28,15 +28,15 @@ describe('resolveEnvProps', () => {
   });
 
   it('should fall back to default when env not present', () => {
-    const preprodConfig = new BaseConfig(
-      'rpj',
-      { account: '123456789012', region: 'us-east-1' },
-      'rpj-test-stack',
-      testconfig.tags,
-      'preprod',
-      'rpj-test-app',
-    );
-    expect(resolveEnvProps(envProps, preprodConfig)).toStrictEqual({
+    const stgConfig = new BaseConfig({
+      domain: 'rpj',
+      env: { account: '123456789012', region: 'us-east-1' },
+      stackName: 'rpj-test-stack',
+      tags: testconfig.tags,
+      stackEnv: 'stg',
+      serviceName: 'rpj-test-app',
+    });
+    expect(resolveEnvProps(envProps, stgConfig)).toStrictEqual({
       test: 'default test',
       test2: 'default test2',
     });
@@ -109,7 +109,7 @@ describe('envDependentBuild', () => {
   let builder: jest.Mock;
 
   beforeEach(() => {
-    envs = ['dev', 'prod'];
+    envs = ['dev', 'prd'];
     builder = jest.fn();
   });
 
@@ -120,9 +120,7 @@ describe('envDependentBuild', () => {
   });
 
   it('should return undefined when current env is not included', () => {
-    expect(
-      envDependentBuild(config, ['preprod', 'prod'], builder),
-    ).toBeUndefined();
+    expect(envDependentBuild(config, ['stg', 'prd'], builder)).toBeUndefined();
     expect(builder).not.toHaveBeenCalled();
   });
 });

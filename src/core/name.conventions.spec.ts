@@ -33,9 +33,14 @@ describe('Core Name Conventions', () => {
   });
   describe('awsArn', () => {
     it('should return the correct output arn value name', () => {
-      expect(awsArn('us-east-1', '123456789012', 'sqs', 'queueName')).toEqual(
-        'arn:aws:sqs:us-east-1:123456789012:queueName',
-      );
+      expect(
+        awsArn({
+          region: 'us-east-1',
+          accountId: '123456789012',
+          resourceType: 'sqs',
+          resourceName: 'queueName',
+        }),
+      ).toEqual('arn:aws:sqs:us-east-1:123456789012:queueName');
     });
   });
 });

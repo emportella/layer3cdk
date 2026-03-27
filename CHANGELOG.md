@@ -11,17 +11,23 @@ Given a version number `MAJOR.MINOR.PATCH`, increment the:
 
 Dates are in [ISO-8601](https://en.wikipedia.org/wiki/ISO_8601).
 
-## [1.0.0] - 2023-06-15
-The initial release of the Layer3CDK project.
+## [0.1.0] - 2026-03-26
+First release of Layer3CDK.
 #### Added
-- First release of the Layer3CDK project.
-- Core package with the abstract `BaseConstruct` class.
-  - ResourceTags following DevOps [AWS Tagging Strategy](
-The default strategy for configurations `Config` class.
-  - Constants for the Environments.
-- Config package with EKS Cluster configurations.
-- Util package with string methods.
-- Service Accounts IAM Roles naming convention and construct.
-- SNS for Event-Driven Architecture naming convention and construct.
-- SQS for Event-Driven Architecture naming convention and construct.
-  - DLQ for SQS.
+- Core foundation: `BaseConstruct<T>`, `BaseConfig`, `BaseStackConfig`, `BaseStack`, `BaseEnvProps<T>`, environment resolution functions (`resolveEnvProps`, `resolveWithOverrides`, `resolveAndMergeEnvProps`, `envDependentBuild`).
+- Props-based API: all construct constructors use `(scope, props)` pattern with dedicated `*.construct.props.ts` files per module. `BaseConstructProps` serves as the composition base for all construct props.
+- SQS constructs: `DLQ`, `DLQFifo`, `EDAStandardQueue/Fifo`, `EDABackgroundTasksQueue/Fifo`, `EDAFaninQueue/Fifo`, `grantFaninPublishing`.
+- SNS constructs: `EDASns`, `EDASnsFifo`.
+- DynamoDB construct: `DynamoTable` with built-in CloudWatch alarms and production validations.
+- Redis construct: `RedisReplicationGroup` with enforced encryption and automatic subnet group creation.
+- SSM constructs: `GlobalSSMStringParameter`, `DomainSSMStringParameter`, `ServiceSSMStringParameter`.
+- Secrets construct: `GlobalSecrets`.
+- ECR construct: `ApplicationRepository` with environment-aware repository creation.
+- IAM construct: `ServiceAccountRole` with EKS OIDC federation.
+- Static Site S3 construct: `SSS3` — private S3 bucket + CloudFront (OAC) + ACM certificate + Route 53 DNS + optional WAF. Supports SPA and static site modes with environment-aware defaults.
+- Alarms constructs: `ChatbotSlackChannnel`, `OpsGenie`, `AlarmSnsAction`.
+- Config: `EksClusterConfig` for EKS cluster configuration.
+- Standardized naming conventions for all resource types.
+- CloudWatch alarm support via `setCloudWatchAlarms` and `setCustomAlarms`.
+- CI/CD workflows for testing and publishing.
+- Documentation and contribution guidelines.

@@ -15,12 +15,11 @@ describe('OpsGenie', () => {
     config = testconfig;
     apiKeys = {
       dev: 'devApiKey',
-      prod: 'prodApiKey',
-      preprod: 'preprodApiKey',
-      perf: 'perfApiKey',
+      prd: 'prdApiKey',
+      stg: 'stgApiKey',
     };
 
-    new OpsGenie(stack, apiKeys, config);
+    new OpsGenie(stack, { config, apiKeys });
     template = Template.fromStack(stack);
   });
   it('Should create an SNS topic for OpsGenie', () => {
@@ -59,7 +58,7 @@ describe('OpsGenie', () => {
   });
   it('Should output the ARN of the OpsGenie SNS topic', () => {
     const outputStack = new Stack();
-    const opsgenieWithOutput = new OpsGenie(outputStack, apiKeys, config);
+    const opsgenieWithOutput = new OpsGenie(outputStack, { config, apiKeys });
     opsgenieWithOutput.outputArn();
     const exportName = arnExportName(opsgenieWithOutput.resourceName);
     Template.fromStack(outputStack).hasOutput('*', {

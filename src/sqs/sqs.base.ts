@@ -14,6 +14,7 @@ import {
 import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import { BaseConfig, BaseConstruct, constructId, arnExportName } from '../core';
+import { CfnSubscriptionProps } from './sqs.construct.props';
 
 const validateFifoQueueProps = (queueProps: QueueProps): string[] => {
   const validationErrors: string[] = [];
@@ -73,16 +74,12 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
   /**
    * Implemented using CfnSubscription to allow for more complex filter policies
    * https://docs.aws.amazon.com/sns/latest/dg/sns-subscription-filter-policies.html
-   * @param arn The ARN of the SNS topic to subscribe to
-   * @param filterPolicyScope The scope of the filter policy. Either MessageBody or MessageAttributes
-   * @param filterPolicy The filter policy to apply
+   * @param props.arn The ARN of the SNS topic to subscribe to
+   * @param props.filterPolicyScope The scope of the filter policy. Either MessageBody or MessageAttributes
+   * @param props.filterPolicy The filter policy to apply
    */
-  public subscribeWithCfnSubscription(
-    arn: string,
-    filterPolicyScope: 'MessageBody' | 'MessageAttributes',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    filterPolicy: any, // CDK CfnSubscription accepts any for filter policy
-  ) {
+  public subscribeWithCfnSubscription(props: CfnSubscriptionProps) {
+    const { arn, filterPolicyScope, filterPolicy } = props;
     new CfnSubscription(
       this,
       constructId(
@@ -94,8 +91,8 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
         endpoint: this.resource.queueArn,
         protocol: 'sqs',
         topicArn: arn,
-        filterPolicyScope: filterPolicyScope,
-        filterPolicy: filterPolicy,
+        filterPolicyScope,
+        filterPolicy,
       },
     );
   }

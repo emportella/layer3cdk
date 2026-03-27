@@ -1,10 +1,10 @@
 import { BaseConfig } from '../core';
 
-export const testconfig = new BaseConfig(
-  'rpj',
-  { account: '123456789012', region: 'us-east-1' },
-  'rpj-test-stack',
-  {
+export const testconfig = new BaseConfig({
+  domain: 'rpj',
+  env: { account: '123456789012', region: 'us-east-1' },
+  stackName: 'rpj-test-stack',
+  tags: {
     'tag:tagSchemaVersion': '0.1',
     'tag:env': 'dev',
     'tag:ownership:department': 'productDevelopment',
@@ -14,7 +14,7 @@ export const testconfig = new BaseConfig(
     'tag:tech:repository': 'testRepo',
     'tag:tech:managedBy': 'cdk',
   },
-  'dev',
-  'rpj-test-app',
-  'My description',
-);
+  stackEnv: 'dev',
+  serviceName: 'rpj-test-app',
+  description: 'My description',
+});

@@ -18,8 +18,11 @@ describe('DLQ', () => {
     stack = new Stack();
     config = testconfig;
     dlq = new DLQ(stack, config);
-    dlqfifo = new DLQFifo(stack, config);
-    eventSpecificDlqFifo = new DLQFifo(stack, config, 'eventSpecificDlqFifo');
+    dlqfifo = new DLQFifo(stack, { config });
+    eventSpecificDlqFifo = new DLQFifo(stack, {
+      config,
+      eventName: 'eventSpecificDlqFifo',
+    });
   });
   it('should create a queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {

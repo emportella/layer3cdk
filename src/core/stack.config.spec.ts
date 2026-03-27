@@ -24,7 +24,7 @@ describe('AppConfig', () => {
     expect(() => {
       app.node.setContext('env', undefined);
       BaseStackConfig.getInstance(app);
-    }).toThrow('No -c env=<dev|prod|perf|preprod> flag provided.');
+    }).toThrow('No -c env=<dev|prd|stg> flag provided.');
   });
   it('should throw an error if region is not set', () => {
     expect(() => {
@@ -63,7 +63,7 @@ describe('AppConfig', () => {
   it('should return updated tags', () => {
     const tags: ResourceTags = {
       'tag:tagSchemaVersion': '0.1',
-      'tag:env': 'prod',
+      'tag:env': 'prd',
       'tag:ownership:department': 'productDevelopment',
       'tag:ownership:orgDomain': 'infra',
       'tag:ownership:team': 'testTeam',

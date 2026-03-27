@@ -1,6 +1,12 @@
-import { CfnElement, Stack } from 'aws-cdk-lib';
+import { CfnElement, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
-import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import {
+  AnyPrincipal,
+  Effect,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from 'aws-cdk-lib/aws-iam';
 import { BaseConfig, constructId } from '../core';
 import { EDASns, EDASnsFifo } from './sns.eda.construct';
 import { testconfig } from '../test/common.test.const';
@@ -21,12 +27,12 @@ describe('EDASns', () => {
       assumedBy: new ServicePrincipal('sts.amazonaws.com'),
     });
     eventName = 'MyTopic';
-    sns = new EDASns(stack, eventName, config);
+    sns = new EDASns(stack, { config, eventName });
     topicRef = stack.getLogicalId(
       stack.node.findChild(constructId(config.stackName, 'sns', sns.eventName))
         .node.defaultChild as CfnElement,
     );
-    snsFifo = new EDASnsFifo(stack, eventName, config);
+    snsFifo = new EDASnsFifo(stack, { config, eventName });
   });
 
   it('should create a topic with the correct name', () => {
@@ -77,5 +83,48 @@ describe('EDASns', () => {
       },
       Value: { Ref: topicRef },
     });
+  });
+
+  it('should add policy statements to the topic', () => {
+    const statement = new PolicyStatement({
+      effect: Effect.ALLOW,
+      principals: [new AnyPrincipal()],
+      actions: ['sns:Publish'],
+      resources: ['*'],
+    });
+    sns.addPolicyStatements(statement);
+    Template.fromStack(stack).hasResourceProperties('AWS::SNS::TopicPolicy', {
+      PolicyDocument: {
+        Statement: [
+          {
+            Action: 'sns:Publish',
+            Effect: 'Allow',
+            Principal: { AWS: '*' },
+            Resource: '*',
+          },
+        ],
+      },
+    });
+  });
+
+  it('should apply RETAIN removal policy to the topic', () => {
+    sns.resourceRemovalPolicy(RemovalPolicy.RETAIN);
+    Template.fromStack(stack).hasResource('AWS::SNS::Topic', {
+      Properties: {
+        TopicName: 'dev-MyTopic',
+      },
+      UpdateReplacePolicy: 'Retain',
+      DeletionPolicy: 'Retain',
+    });
+  });
+
+  it('EDASnsFifo should throw error if topicProps has fifo false', () => {
+    expect(() => {
+      new EDASnsFifo(new Stack(), {
+        config,
+        eventName: 'FifoValidation',
+        topicProps: { fifo: false },
+      });
+    }).toThrow('EDA Standard SNS FIFO requires fifo=true');
   });
 });

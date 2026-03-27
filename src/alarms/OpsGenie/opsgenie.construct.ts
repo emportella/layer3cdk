@@ -8,6 +8,7 @@ import {
   constructId,
   arnExportName,
 } from '../../core';
+import { OpsGenieProps } from '../alarms.construct.props';
 import { createAlarmTopic } from '../alarm.topic';
 import { Construct } from 'constructs';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
@@ -35,11 +36,8 @@ export class OpsGenie extends BaseConstruct<SnsAction> {
    * @param apiKeys - The OpsGenie API keys.
    * @param config - The configuration object.
    */
-  public constructor(
-    scope: Construct,
-    apiKeys: OpsGenieApiKeys,
-    config: BaseConfig,
-  ) {
+  public constructor(scope: Construct, props: OpsGenieProps) {
+    const { config, apiKeys } = props;
     const resourceName = `${config.stackEnv}-${config.domain}-opsgenie`;
     super(
       scope,

@@ -17,7 +17,7 @@ type EnvProps<T> = {
  * ```typescript
  * const dynamoConfig: BaseEnvProps<DynamoConfig> = {
  *   default: { billing: onDemand, alarmThreshold: 20 },
- *   prod:    { billing: provisioned, alarmThreshold: 40 },
+ *   prd:     { billing: provisioned, alarmThreshold: 40 },
  * };
  * ```
  */
@@ -108,7 +108,7 @@ export function resolveAndMergeEnvProps<T extends object>(
  *
  * @example
  * ```typescript
- * const policy = envDependentBuild(config, ['dev', 'prod'], () => {
+ * const policy = envDependentBuild(config, ['dev', 'prd'], () => {
  *   return new PolicyStatement({ actions: ['s3:GetObject'], resources: ['*'] });
  * });
  * ```

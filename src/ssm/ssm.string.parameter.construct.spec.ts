@@ -30,20 +30,19 @@ describe('SSMStringParameter', () => {
 
   describe('GlobalSSMStringParameter', () => {
     beforeEach(() => {
-      ssmStringParameter = new GlobalSSMStringParameter(
-        stack,
-        param.name,
-        param.value,
+      ssmStringParameter = new GlobalSSMStringParameter(stack, {
         config,
-      );
+        parameterName: param.name,
+        parameterValue: param.value,
+      });
 
-      parameterName = ssmParameterName(
-        param.name,
-        config.serviceName,
-        config.domain,
-        'global',
-        config.stackEnv,
-      );
+      parameterName = ssmParameterName({
+        parameterName: param.name,
+        serviceName: config.serviceName,
+        domain: config.domain,
+        contextLevel: 'global',
+        env: config.stackEnv,
+      });
     });
 
     it('should create string paramter with the correct name and value', () => {
@@ -70,20 +69,19 @@ describe('SSMStringParameter', () => {
 
   describe('DomainSSMStringParameter', () => {
     beforeEach(() => {
-      ssmStringParameter = new DomainSSMStringParameter(
-        stack,
-        param.name,
-        param.value,
+      ssmStringParameter = new DomainSSMStringParameter(stack, {
         config,
-      );
+        parameterName: param.name,
+        parameterValue: param.value,
+      });
 
-      parameterName = ssmParameterName(
-        param.name,
-        config.serviceName,
-        config.domain,
-        'domain',
-        config.stackEnv,
-      );
+      parameterName = ssmParameterName({
+        parameterName: param.name,
+        serviceName: config.serviceName,
+        domain: config.domain,
+        contextLevel: 'domain',
+        env: config.stackEnv,
+      });
     });
 
     it('should create string paramter with the correct name and value', () => {
@@ -110,20 +108,19 @@ describe('SSMStringParameter', () => {
 
   describe('ServiceSSMStringParameter', () => {
     beforeEach(() => {
-      ssmStringParameter = new ServiceSSMStringParameter(
-        stack,
-        param.name,
-        param.value,
+      ssmStringParameter = new ServiceSSMStringParameter(stack, {
         config,
-      );
+        parameterName: param.name,
+        parameterValue: param.value,
+      });
 
-      parameterName = ssmParameterName(
-        param.name,
-        config.serviceName,
-        config.domain,
-        'service',
-        config.stackEnv,
-      );
+      parameterName = ssmParameterName({
+        parameterName: param.name,
+        serviceName: config.serviceName,
+        domain: config.domain,
+        contextLevel: 'service',
+        env: config.stackEnv,
+      });
     });
 
     it('should create string paramter with the correct name and value', () => {

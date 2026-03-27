@@ -1,4 +1,5 @@
 import { trimDashes } from '../util';
+import { AwsArnProps } from './base.construct.props';
 import { StackEnv, ResourceType } from './constants';
 
 const MAX_CFN_ID_LENGTH = 256;
@@ -17,7 +18,7 @@ const validateName = (name: string, context: string): string => {
 
 /**
  * Naming Convention for CDK Stacks
- * @param env - dev, perf, preprod, prod
+ * @param env - dev, stg, prd
  * @param stackName
  * @returns `${env}-${stackName}`
  * @example dev-RPTasks
@@ -79,7 +80,7 @@ export const alarmConstructId = <
  * Defines the naming convention for output values
  * @param resourceName
  * @returns `output-${resourceName}-arn`
- * @example output-monolith-eks-service-account-preprod-arn
+ * @example output-monolith-eks-service-account-stg-arn
  */
 export const arnExportName = (resourceName: string): string => {
   return `output-${trimDashes(resourceName)}-arn`;
@@ -90,7 +91,7 @@ export const arnExportName = (resourceName: string): string => {
  * @param paramType - type of parameter which is exported (e.g. 'arn', 'endpoint')
  * @param resourceName
  * @returns `output-${resourceName}-{paramType}`
- * @example output-monolith-eks-service-account-preprod-arn
+ * @example output-monolith-eks-service-account-stg-arn
  */
 export const outputExportName = (params: {
   resourceName: string;
@@ -102,17 +103,13 @@ export const outputExportName = (params: {
 
 /**
  * Helper function to generate AWS ARN
- * @param region can be obtained from `config.env.region`
- * @param accountId can be obtained from `config.env.account`
- * @param resourceType - aws resource namespace
- * @param resourceName - name of the resource
+ * @param props.region can be obtained from `config.env.region`
+ * @param props.accountId can be obtained from `config.env.account`
+ * @param props.resourceType - aws resource namespace
+ * @param props.resourceName - name of the resource
  * @returns `arn:aws:${resourceType}:${region}:${accountId}:${resourceName}`
  */
-export const awsArn = (
-  region: string,
-  accountId: string,
-  resourceType: string,
-  resourceName: string,
-): string => {
+export const awsArn = (props: AwsArnProps): string => {
+  const { region, accountId, resourceType, resourceName } = props;
   return `arn:aws:${resourceType}:${region}:${accountId}:${resourceName}`;
 };

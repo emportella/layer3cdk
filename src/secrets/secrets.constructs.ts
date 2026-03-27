@@ -4,6 +4,7 @@ import { RemovalPolicy } from 'aws-cdk-lib';
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { SecretsContextLevel } from './secrets.constants';
+import { GlobalSecretsProps } from './secrets.construct.props';
 
 class BaseSecrets extends BaseConstruct<Secret> {
   private readonly secret: Secret;
@@ -42,7 +43,7 @@ class BaseSecrets extends BaseConstruct<Secret> {
  * Grants read-only access via {@link GlobalSecrets.grantPolicies}.
  */
 export class GlobalSecrets extends BaseSecrets {
-  constructor(scope: Construct, parameterName: string, config: BaseConfig) {
-    super(scope, parameterName, config, 'global');
+  constructor(scope: Construct, props: GlobalSecretsProps) {
+    super(scope, props.parameterName, props.config, 'global');
   }
 }

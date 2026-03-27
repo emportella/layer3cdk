@@ -1,4 +1,5 @@
 export * from './base.config';
+export * from './base.construct.props';
 export * from './constants';
 export * from './base.construct.env.props';
 export * from './base.construct';

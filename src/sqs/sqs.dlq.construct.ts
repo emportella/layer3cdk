@@ -15,6 +15,7 @@ import {
   constructId,
   arnExportName,
 } from '../core';
+import { DLQFifoProps } from './sqs.construct.props';
 import { sqsDlqName } from './sqs.name.conventions';
 
 class DLQBase extends BaseConstruct<Queue> {
@@ -89,7 +90,10 @@ class DLQBase extends BaseConstruct<Queue> {
 export class DLQ extends DLQBase {
   constructor(scope: Construct, config: BaseConfig) {
     const queueProps: QueueProps = {
-      queueName: sqsDlqName(config.stackEnv, config.serviceName),
+      queueName: sqsDlqName({
+        env: config.stackEnv,
+        serviceName: config.serviceName,
+      }),
       retentionPeriod: Duration.days(14),
     };
     super(scope, queueProps, config);
@@ -101,17 +105,14 @@ export class DLQ extends DLQBase {
  * @param eventName - Optional event name override; defaults to the service name from config.
  */
 export class DLQFifo extends DLQBase {
-  constructor(
-    scope: Construct,
-    config: BaseConfig,
-    eventName?: string | undefined,
-  ) {
+  constructor(scope: Construct, props: DLQFifoProps) {
+    const { config, eventName } = props;
     const queueProps: QueueProps = {
-      queueName: sqsDlqName(
-        config.stackEnv,
-        eventName !== undefined ? eventName : config.serviceName,
-        true,
-      ),
+      queueName: sqsDlqName({
+        env: config.stackEnv,
+        serviceName: eventName !== undefined ? eventName : config.serviceName,
+        isFifo: true,
+      }),
       retentionPeriod: Duration.days(14),
       fifo: true,
       contentBasedDeduplication: true,

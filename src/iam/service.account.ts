@@ -8,6 +8,7 @@ import {
 } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { BaseConfig, BaseConstruct, arnExportName, constructId } from '../core';
+import { ServiceAccountRoleProps } from './iam.construct.props';
 import {
   serviceAccountName,
   serviceAccountRoleName,
@@ -27,11 +28,8 @@ import { EnvConfig } from '../config/config.interfaces';
 export class ServiceAccountRole extends BaseConstruct<Role> {
   private readonly federatedPrincipal: FederatedPrincipal;
   protected readonly resource: Role;
-  constructor(
-    scope: Construct,
-    config: BaseConfig,
-    oidcProviderArns: EnvConfig,
-  ) {
+  constructor(scope: Construct, props: ServiceAccountRoleProps) {
+    const { config, oidcProviderArns } = props;
     const roleName = serviceAccountRoleName(
       config.serviceName,
       config.stackEnv,
@@ -92,11 +90,10 @@ class EksFederatedOIDCPrincipal extends OpenIdConnectPrincipal {
   ) {
     const saName = serviceAccountName(serviceName || config.serviceName);
 
-    const eksClusterConfig = new EksClusterConfig(
-      scope,
+    const eksClusterConfig = new EksClusterConfig(scope, {
       config,
       oidcProviderArns,
-    );
+    });
 
     const openIdConnectProvider =
       OpenIdConnectProvider.fromOpenIdConnectProviderArn(

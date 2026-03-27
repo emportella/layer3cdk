@@ -27,19 +27,22 @@ describe('EDAFaninQueue', () => {
     eventName = 'TestEventCreated';
     config = testconfig;
     dlq = new DLQ(stack, config);
-    dlqfifo = new DLQFifo(stack, config);
-    faninQueue = new EDAFaninQueue(stack, eventName, dlq.getDlq(), config);
+    dlqfifo = new DLQFifo(stack, { config });
+    faninQueue = new EDAFaninQueue(stack, {
+      eventName,
+      dlq: dlq.getDlq(),
+      config,
+    });
     faninQueueRef = stack.getLogicalId(
       stack.node.findChild(
         constructId(config.stackName, 'sqs', faninQueue.resourceName),
       ).node.defaultChild as CfnElement,
     );
-    faninQueueFifo = new EDAFaninQueueFifo(
-      stack,
+    faninQueueFifo = new EDAFaninQueueFifo(stack, {
       eventName,
-      dlqfifo.getDlq(),
+      dlq: dlqfifo.getDlq(),
       config,
-    );
+    });
   });
   it('should create 4 queues', () => {
     Template.fromStack(stack).resourceCountIs('AWS::SQS::Queue', 4);
@@ -159,13 +162,15 @@ describe('EDAFaninQueue', () => {
       const role = new Role(stack, 'IAMRole', {
         assumedBy: new ServicePrincipal('sts.amazonaws.com'),
       });
-      grantFaninPublishing(
+      grantFaninPublishing({
         role,
-        [{ serviceName: 'rpj-test-app', eventName: 'TestEventCreated' }],
-        'us-east-1',
-        '123456789012',
-        'dev',
-      );
+        faninQueues: [
+          { serviceName: 'rpj-test-app', eventName: 'TestEventCreated' },
+        ],
+        region: 'us-east-1',
+        accountId: '123456789012',
+        env: 'dev',
+      });
       Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: [
@@ -189,16 +194,16 @@ describe('EDAFaninQueue', () => {
       const role = new Role(stack, 'IAMRole', {
         assumedBy: new ServicePrincipal('sts.amazonaws.com'),
       });
-      grantFaninPublishing(
+      grantFaninPublishing({
         role,
-        [
+        faninQueues: [
           { serviceName: 'rpj-test-app', eventName: 'TestEventCreated' },
           { serviceName: 'rpj-test-app2', eventName: 'TestEventCreated2' },
         ],
-        'us-east-1',
-        '123456789012',
-        'dev',
-      );
+        region: 'us-east-1',
+        accountId: '123456789012',
+        env: 'dev',
+      });
       Template.fromStack(stack).hasResourceProperties('AWS::IAM::Policy', {
         PolicyDocument: {
           Statement: [
@@ -222,15 +227,22 @@ describe('EDAFaninQueue', () => {
   });
   it('EDAStandardFifo Should throw error if QueueProp has fifo false', () => {
     expect(() => {
-      new EDAFaninQueueFifo(stack, 'eventName1', dlqfifo.getDlq(), config, {
-        fifo: false,
+      new EDAFaninQueueFifo(stack, {
+        eventName: 'eventName1',
+        dlq: dlqfifo.getDlq(),
+        config,
+        queueProps: { fifo: false },
       });
       return Template.fromStack(stack);
     }).toThrow("Non-FIFO queue name may not end in '.fifo'");
   });
   it('EDAStandardFifo Should throw error if dlq is not fifo', () => {
     expect(() => {
-      new EDAFaninQueueFifo(stack, 'eventName1', dlq.getDlq(), config);
+      new EDAFaninQueueFifo(stack, {
+        eventName: 'eventName1',
+        dlq: dlq.getDlq(),
+        config,
+      });
       return Template.fromStack(stack);
     }).toThrow('Queues that are FIFO requires dlq to be a FIFO queue');
   });

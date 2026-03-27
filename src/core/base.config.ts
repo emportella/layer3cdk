@@ -1,4 +1,5 @@
 import { Environment, StackProps } from 'aws-cdk-lib';
+import { BaseConfigProps } from './base.construct.props';
 import { StackEnv, Domain } from './constants';
 import { ResourceTags } from './tags';
 
@@ -15,22 +16,14 @@ export class BaseConfig implements StackProps {
   readonly serviceName: string;
   readonly description?: string;
 
-  constructor(
-    domain: Domain,
-    env: Environment,
-    stackName: string,
-    tags: ResourceTags,
-    stackEnv: StackEnv,
-    serviceName: string,
-    description?: string,
-  ) {
-    this.domain = domain;
-    this.env = env;
-    this.stackName = stackName;
-    this.tags = tags;
-    this.stackEnv = stackEnv;
-    this.serviceName = serviceName;
-    this.description = description;
+  constructor(props: BaseConfigProps) {
+    this.domain = props.domain;
+    this.env = props.env;
+    this.stackName = props.stackName;
+    this.tags = props.tags;
+    this.stackEnv = props.stackEnv;
+    this.serviceName = props.serviceName;
+    this.description = props.description;
   }
 }
 

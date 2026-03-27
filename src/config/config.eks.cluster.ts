@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
 import { BaseConfig } from '../core';
+import { EksClusterConfigProps } from './config.construct.props';
 import { EnvConfig } from './config.interfaces';
 
 /**
@@ -17,12 +18,8 @@ export class EksClusterConfig {
   private readonly oidcProviderArns: EnvConfig;
   private readonly namespaceRules: EnvConfig;
 
-  constructor(
-    scope: Construct,
-    config: BaseConfig,
-    oidcProviderArns: EnvConfig,
-    namespaceRules?: EnvConfig,
-  ) {
+  constructor(scope: Construct, props: EksClusterConfigProps) {
+    const { config, oidcProviderArns, namespaceRules } = props;
     this.scope = scope;
     this.config = config;
     this.oidcProviderArns = oidcProviderArns;
@@ -46,7 +43,6 @@ export class EksClusterConfig {
 
 const DEFAULT_NAMESPACE_RULES: EnvConfig = {
   dev: '*',
-  perf: 'performance-test',
-  preprod: 'default',
-  prod: 'default',
+  stg: 'default',
+  prd: 'default',
 };

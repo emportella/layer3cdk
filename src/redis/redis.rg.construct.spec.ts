@@ -27,19 +27,23 @@ describe('RedisReplicationGroup', () => {
 
   const envRedisConfig = {
     default: redisConfig,
-    prod: redisConfig,
+    prd: redisConfig,
   };
 
   const envRedisProps = {
     default: redisProps,
-    prod: redisProps,
+    prd: redisProps,
   };
 
   beforeEach(() => {
     stack = new Stack();
     config = testconfig;
 
-    new RedisReplicationGroup(stack, config, envRedisProps, envRedisConfig);
+    new RedisReplicationGroup(stack, {
+      config,
+      elasticacheProps: envRedisProps,
+      elasticacheConfig: envRedisConfig,
+    });
   });
 
   it('should create one replication group with the correct id', () => {
@@ -98,17 +102,21 @@ describe('RedisReplicationGroup', () => {
   });
 
   it('should create resources with expected properties in Production', () => {
-    const prodConfig = new BaseConfig(
-      config.domain,
-      config.env,
-      config.stackName,
-      config.tags,
-      'prod',
-      config.serviceName,
-      config.description,
-    );
+    const prdConfig = new BaseConfig({
+      domain: config.domain,
+      env: config.env,
+      stackName: config.stackName,
+      tags: config.tags,
+      stackEnv: 'prd',
+      serviceName: config.serviceName,
+      description: config.description,
+    });
     stack = new Stack();
-    new RedisReplicationGroup(stack, prodConfig, envRedisProps, envRedisConfig);
+    new RedisReplicationGroup(stack, {
+      config: prdConfig,
+      elasticacheProps: envRedisProps,
+      elasticacheConfig: envRedisConfig,
+    });
 
     Template.fromStack(stack).hasResourceProperties(
       'AWS::ElastiCache::ReplicationGroup',

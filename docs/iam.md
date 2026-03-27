@@ -8,5 +8,5 @@ The [ServiceAccountRole](./service.account.ts) is an IAM role designed specifica
 ```typescript
 import { ServiceAccountRole } from 'layer3cdk';
 
-const serviceAccountRole = new ServiceAccountRole(scope, config); //that's it.
+const serviceAccountRole = new ServiceAccountRole(scope, { config, oidcProviderArns }); //that's it.
 ```

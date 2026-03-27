@@ -25,11 +25,11 @@ export const createAlarmTopic = (
     scope,
     constructId(config.stackName, 'sns-cwaction', topicId),
     {
-      topicName: alarmTopicName(
-        config.stackEnv,
-        config.domain,
+      topicName: alarmTopicName({
+        env: config.stackEnv,
+        domain: config.domain,
         alarmActionType,
-      ),
+      }),
     },
   );
   topic.addToResourcePolicy(

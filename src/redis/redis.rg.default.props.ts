@@ -28,7 +28,7 @@ export const REDIS_RG_ENVIRONMENTS_PROPS: BaseEnvProps<RedisReplicationGroupConf
       numNodeGroups: 2,
       preferredMaintenanceWindow: 'sun:23:00-mon:01:30',
     },
-    preprod: {
+    stg: {
       automaticFailoverEnabled: true,
       autoMinorVersionUpgrade: true,
       cacheNodeType: 'cache.t4g.small',
@@ -38,7 +38,7 @@ export const REDIS_RG_ENVIRONMENTS_PROPS: BaseEnvProps<RedisReplicationGroupConf
       numNodeGroups: 2,
       preferredMaintenanceWindow: 'sun:23:00-mon:01:30',
     },
-    prod: {
+    prd: {
       automaticFailoverEnabled: true,
       autoMinorVersionUpgrade: false,
       cacheNodeType: 'cache.t4g.medium',

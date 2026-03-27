@@ -1,9 +1,10 @@
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { ITopic, Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import { BaseConfig, BaseConstruct, constructId } from '../../core';
+import { BaseConstruct, constructId } from '../../core';
+import { AlarmSnsActionProps } from '../alarms.construct.props';
 import { alarmTopicName } from '../alarms.name.conventions';
-import { AlarmActionMap, AlarmActionType } from './alarmActions.constants';
+import { AlarmActionType } from './alarmActions.constants';
 
 /**
  * SNS action construct
@@ -19,11 +20,12 @@ export default class AlarmSnsAction extends BaseConstruct<
   protected resource: Map<string, SnsAction> = new Map();
   private topic: ITopic[];
 
-  constructor(scope: Construct, config: BaseConfig, snsArns: AlarmActionMap) {
+  constructor(scope: Construct, props: AlarmSnsActionProps) {
+    const { config, snsArns } = props;
     super(
       scope,
       'sns-cwaction',
-      alarmTopicName(config.stackEnv, config.domain),
+      alarmTopicName({ env: config.stackEnv, domain: config.domain }),
       config,
     );
     this.topic = [];

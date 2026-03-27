@@ -9,6 +9,7 @@ import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 import { BaseConfig, BaseConstruct, arnExportName, constructId } from '../core';
+import { EDASnsProps } from './sns.construct.props';
 import { snsTopicName } from './sns.name.conventions';
 
 const validateSnsFifoProps = (topicProps: TopicProps): void => {
@@ -102,13 +103,10 @@ class SNSBase extends BaseConstruct<Topic> {
  * @param topicProps - Optional overrides merged onto the default topic properties.
  */
 export class EDASns extends SNSBase {
-  constructor(
-    scope: Construct,
-    eventName: string,
-    config: BaseConfig,
-    topicProps?: TopicProps,
-  ) {
-    const topicName = snsTopicName(config.stackEnv, eventName);
+  constructor(scope: Construct, props: EDASnsProps) {
+    const { config, eventName } = props;
+    let { topicProps } = props;
+    const topicName = snsTopicName({ env: config.stackEnv, eventName });
     topicProps = { topicName, ...topicProps };
     super(scope, eventName, topicName, config, topicProps);
   }
@@ -116,13 +114,14 @@ export class EDASns extends SNSBase {
 
 /** FIFO variant of {@link EDASns} with content-based deduplication. */
 export class EDASnsFifo extends SNSBase {
-  constructor(
-    scope: Construct,
-    eventName: string,
-    config: BaseConfig,
-    topicProps?: TopicProps,
-  ) {
-    const topicName = snsTopicName(config.stackEnv, eventName, true);
+  constructor(scope: Construct, props: EDASnsProps) {
+    const { config, eventName } = props;
+    let { topicProps } = props;
+    const topicName = snsTopicName({
+      env: config.stackEnv,
+      eventName,
+      isFifo: true,
+    });
     const defaultProp = {
       topicName,
       fifo: true,

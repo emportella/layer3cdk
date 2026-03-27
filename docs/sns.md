@@ -8,7 +8,7 @@ EDASns is an [SNS Topic](./sns.eda.construct.ts) that can be used for event-driv
 ```typescript
 import { EDASns } from 'layer3cdk';
 
-const taskCreatedSNS = new EDASns(scope, 'TaskCreated', config);
+const taskCreatedSNS = new EDASns(scope, { eventName: 'TaskCreated', config });
 taskCreatedSNS.setCloudWatchAlarms(snsAction);// optional sns action until implemented.
 taskCreatedSNS.outputArn(); // outputs the ARN of the SNS topic to be used in other stacks.
 taskCreatedSNS.grantPolicies(serviceAccountRole); // grants the service account to publish to the topic.

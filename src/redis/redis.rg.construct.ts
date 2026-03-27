@@ -12,6 +12,7 @@ import {
   resolveAndMergeEnvProps,
   outputExportName,
 } from '../core';
+import { RedisReplicationGroupConstructProps } from './redis.construct.props';
 import {
   redisClusterName,
   redisSubnetGroupName,
@@ -72,12 +73,8 @@ export class RedisReplicationGroup extends BaseConstruct<CfnReplicationGroup> {
     };
   }
 
-  constructor(
-    scope: Construct,
-    config: BaseConfig,
-    elasticacheProps: BaseEnvProps<RedisReplicationGroupProps>,
-    elasticacheConfig?: BaseEnvProps<RedisReplicationGroupConfig>,
-  ) {
+  constructor(scope: Construct, props: RedisReplicationGroupConstructProps) {
+    const { config, elasticacheProps, elasticacheConfig } = props;
     const { stackEnv, serviceName, domain, tags } = config;
     const namingProps = {
       env: stackEnv,
