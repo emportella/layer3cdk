@@ -63,7 +63,7 @@ describe('EDASns', () => {
   it('should create a CloudWatch alarm for failed notifications', () => {
     snsFifo.setCloudWatchAlarms();
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName: 'dev-MyTopic.fifo Notification Failed Alarm',
+      AlarmName: 'MyTopic-fifo Notification Failed Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'NumberOfNotificationsFailed',
@@ -79,7 +79,7 @@ describe('EDASns', () => {
     sns.outputArn();
     Template.fromStack(stack).hasOutput(`*`, {
       Export: {
-        Name: 'output-dev-MyTopic-arn',
+        Name: 'output-pltf-banana-stack-MyTopic-arn',
       },
       Value: { Ref: topicRef },
     });

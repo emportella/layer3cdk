@@ -1,12 +1,7 @@
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { UrlSubscription } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { OPSGENIE_PATH } from './opsgenie.constants';
-import {
-  BaseConfig,
-  BaseConstruct,
-  constructId,
-  arnExportName,
-} from '../../core';
+import { BaseConfig, BaseConstruct } from '../../core';
 import { OpsGenieProps } from '../alarms.construct.props';
 import { createAlarmTopic } from '../alarm.topic';
 import { Construct } from 'constructs';
@@ -35,13 +30,7 @@ export class OpsGenie extends BaseConstruct<SnsAction> {
    */
   public constructor(scope: Construct, props: OpsGenieProps) {
     const { config, apiKeys } = props;
-    const resourceName = `${config.stackEnv}-${config.department}-opsgenie`;
-    super(
-      scope,
-      'sns-cwaction',
-      constructId(config.stackName, 'sns-cwaction', resourceName),
-      config,
-    );
+    super(scope, 'sns-cwaction', 'opsgenie', config);
     this.apiKey = apiKeys[config.stackEnv];
     this.topic = this.createTopic(scope, config);
     this.resource = new SnsAction(this.topic);
@@ -78,7 +67,7 @@ export class OpsGenie extends BaseConstruct<SnsAction> {
   }
 
   public outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.topic.topicArn,
       exportName: exportName,

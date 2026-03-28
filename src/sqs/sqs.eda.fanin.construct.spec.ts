@@ -3,7 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { BaseConfig, constructId } from '../core';
+import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
   EDAFaninQueue,
@@ -34,9 +34,8 @@ describe('EDAFaninQueue', () => {
       config,
     });
     faninQueueRef = stack.getLogicalId(
-      stack.node.findChild(
-        constructId(config.stackName, 'sqs', faninQueue.resourceName),
-      ).node.defaultChild as CfnElement,
+      stack.node.findChild(`${config.stackName}-sqs-${faninQueue.resourceName}`)
+        .node.defaultChild as CfnElement,
     );
     faninQueueFifo = new EDAFaninQueueFifo(stack, {
       eventName,
@@ -49,12 +48,12 @@ describe('EDAFaninQueue', () => {
   });
   it('should create a queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-fanin-RpjTestApp-TestEventCreated',
+      QueueName: 'dev-fanin-BananaLauncher-TestEventCreated',
       MessageRetentionPeriod: 1209600,
       VisibilityTimeout: 30,
     });
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-dlq-RpjTestApp',
+      QueueName: 'dev-dlq-BananaLauncher',
       MessageRetentionPeriod: 1209600,
     });
   });
@@ -62,7 +61,7 @@ describe('EDAFaninQueue', () => {
     faninQueueFifo.resourceRemovalPolicy(RemovalPolicy.RETAIN);
     Template.fromStack(stack).hasResource('AWS::SQS::Queue', {
       Properties: {
-        QueueName: 'dev-fanin-RpjTestApp-TestEventCreated.fifo',
+        QueueName: 'dev-fanin-BananaLauncher-TestEventCreated.fifo',
       },
       UpdateReplacePolicy: 'Retain',
       DeletionPolicy: 'Retain',
@@ -74,8 +73,7 @@ describe('EDAFaninQueue', () => {
       ActionsEnabled: false,
       AlarmDescription:
         'Alarm if the oldest message in the queue is older than 60 seconds',
-      AlarmName:
-        'dev-fanin-RpjTestApp-TestEventCreated Stale Old Message Alarm',
+      AlarmName: 'fanin-TestEventCreated Stale Old Message Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateAgeOfOldestMessage',
@@ -88,8 +86,7 @@ describe('EDAFaninQueue', () => {
       ActionsEnabled: false,
       AlarmDescription:
         'Alarm if the number of messages in the queue is greater than 100',
-      AlarmName:
-        'dev-fanin-RpjTestApp-TestEventCreated High Number of Messages Alarm',
+      AlarmName: 'fanin-TestEventCreated High Number of Messages Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateNumberOfMessagesVisible',
@@ -104,15 +101,13 @@ describe('EDAFaninQueue', () => {
     const topicRef = stack.getLogicalId(topic.node.defaultChild as CfnElement);
     faninQueue.setCloudWatchAlarms(new SnsAction(topic));
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName:
-        'dev-fanin-RpjTestApp-TestEventCreated Stale Old Message Alarm',
+      AlarmName: 'fanin-TestEventCreated Stale Old Message Alarm',
       ActionsEnabled: true,
       AlarmActions: [{ Ref: topicRef }],
       OKActions: [{ Ref: topicRef }],
     });
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName:
-        'dev-fanin-RpjTestApp-TestEventCreated High Number of Messages Alarm',
+      AlarmName: 'fanin-TestEventCreated High Number of Messages Alarm',
       ActionsEnabled: true,
       AlarmActions: [{ Ref: topicRef }],
       OKActions: [{ Ref: topicRef }],
@@ -165,7 +160,7 @@ describe('EDAFaninQueue', () => {
       grantFaninPublishing({
         role,
         faninQueues: [
-          { serviceName: 'rpj-test-app', eventName: 'TestEventCreated' },
+          { serviceName: 'banana-launcher', eventName: 'TestEventCreated' },
         ],
         region: 'us-east-1',
         accountId: '123456789012',
@@ -181,7 +176,7 @@ describe('EDAFaninQueue', () => {
                 'sqs:GetQueueAttributes',
               ],
               Resource:
-                'arn:aws:sqs:us-east-1:123456789012:dev-fanin-RpjTestApp-TestEventCreated',
+                'arn:aws:sqs:us-east-1:123456789012:dev-fanin-BananaLauncher-TestEventCreated',
 
               Effect: 'Allow',
               Sid: 'AllowFaninPublish',
@@ -197,8 +192,8 @@ describe('EDAFaninQueue', () => {
       grantFaninPublishing({
         role,
         faninQueues: [
-          { serviceName: 'rpj-test-app', eventName: 'TestEventCreated' },
-          { serviceName: 'rpj-test-app2', eventName: 'TestEventCreated2' },
+          { serviceName: 'banana-launcher', eventName: 'TestEventCreated' },
+          { serviceName: 'waffle-cannon', eventName: 'TestEventCreated2' },
         ],
         region: 'us-east-1',
         accountId: '123456789012',
@@ -214,8 +209,8 @@ describe('EDAFaninQueue', () => {
                 'sqs:GetQueueAttributes',
               ],
               Resource: [
-                'arn:aws:sqs:us-east-1:123456789012:dev-fanin-RpjTestApp-TestEventCreated',
-                'arn:aws:sqs:us-east-1:123456789012:dev-fanin-RpjTestApp2-TestEventCreated2',
+                'arn:aws:sqs:us-east-1:123456789012:dev-fanin-BananaLauncher-TestEventCreated',
+                'arn:aws:sqs:us-east-1:123456789012:dev-fanin-WaffleCannon-TestEventCreated2',
               ],
               Effect: 'Allow',
               Sid: 'AllowFaninPublish',

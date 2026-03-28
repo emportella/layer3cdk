@@ -15,7 +15,7 @@ describe('RedisReplicationGroup', () => {
 
   const redisProps: RedisReplicationGroupProps = {
     subnets: [{ id: 'subnet1' }, { id: 'subnet1' }],
-    replicationGroupDescription: 'RP Redis Cluster',
+    replicationGroupDescription: 'Banana Launcher Redis Cluster',
     securityGroupIds: ['sg1', 'sg2'],
     engineVersion: 'diesel',
   };
@@ -70,12 +70,12 @@ describe('RedisReplicationGroup', () => {
       'AWS::ElastiCache::ReplicationGroup',
       Match.objectEquals({
         AtRestEncryptionEnabled: true,
-        CacheSubnetGroupName: 'dev-rpj-RpjTestApp-subnet',
+        CacheSubnetGroupName: 'dev-pltf-BananaLauncher-subnet',
         ClusterMode: redisConfig.clusterMode,
         Engine: 'redis',
         IpDiscovery: 'ipv4',
         ReplicationGroupDescription: redisProps.replicationGroupDescription,
-        ReplicationGroupId: 'dev-rpj-RpjTestApp',
+        ReplicationGroupId: 'dev-pltf-BananaLauncher',
         SecurityGroupIds: securityGroupIds,
         TransitEncryptionEnabled: true,
         TransitEncryptionMode: 'required',
@@ -93,7 +93,7 @@ describe('RedisReplicationGroup', () => {
     template.hasResourceProperties(
       'AWS::ElastiCache::SubnetGroup',
       Match.objectEquals({
-        CacheSubnetGroupName: 'dev-rpj-RpjTestApp-subnet',
+        CacheSubnetGroupName: 'dev-pltf-BananaLauncher-subnet',
         Description: 'Elasticache Subnet Group',
         SubnetIds: subnets.map(({ id }) => id),
         Tags: Match.anyValue(), // since order of items cannot be ignored
@@ -154,7 +154,7 @@ describe('RedisReplicationGroup', () => {
       `*`,
       Match.objectLike({
         Export: {
-          Name: 'output-dev-rpj-RpjTestApp-host',
+          Name: 'output-pltf-banana-stack-BananaLauncher-host',
         },
       }),
     );
@@ -165,7 +165,7 @@ describe('RedisReplicationGroup', () => {
       `*`,
       Match.objectLike({
         Export: {
-          Name: 'output-dev-rpj-RpjTestApp-port',
+          Name: 'output-pltf-banana-stack-BananaLauncher-port',
         },
       }),
     );

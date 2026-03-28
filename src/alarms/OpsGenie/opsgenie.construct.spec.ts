@@ -1,6 +1,6 @@
 import { Stack } from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
-import { BaseConfig, arnExportName } from '../../core';
+import { BaseConfig } from '../../core';
 import { OpsGenie, OpsGenieApiKeys } from './opsgenie.construct';
 import { testconfig } from '../../test/common.test.const';
 
@@ -26,7 +26,7 @@ describe('OpsGenie', () => {
     template.hasResourceProperties(
       'AWS::SNS::Topic',
       Match.objectLike({
-        TopicName: 'dev-rpj-alarm-action-opsGenie',
+        TopicName: 'dev-pltf-alarm-action-opsGenie',
       }),
     );
   });
@@ -60,13 +60,11 @@ describe('OpsGenie', () => {
     const outputStack = new Stack();
     const opsgenieWithOutput = new OpsGenie(outputStack, { config, apiKeys });
     opsgenieWithOutput.outputArn();
-    const exportName = arnExportName(opsgenieWithOutput.resourceName);
     Template.fromStack(outputStack).hasOutput('*', {
       Export: {
-        Name: exportName,
+        Name: 'output-pltf-banana-stack-opsgenie-arn',
       },
-      Description:
-        'The ARN of the OpsGenie SNS topic rpj-test-stack-sns-cwaction-dev-rpj-opsgenie',
+      Description: 'The ARN of the OpsGenie SNS topic opsgenie',
     });
   });
 });

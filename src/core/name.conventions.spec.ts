@@ -9,21 +9,21 @@ import {
 describe('Core Name Conventions', () => {
   describe('stackName', () => {
     it('should return the correct stack name', () => {
-      expect(stackName('dev', 'service-name')).toEqual('dev-service-name');
+      expect(stackName('dev', 'pizza-cannon')).toEqual('dev-PizzaCannon');
     });
   });
   describe('constructId', () => {
     it('should return the correct construct id', () => {
-      expect(constructId('dev-stack-name', 'sns', 'construct-name')).toEqual(
-        'dev-stack-name-sns-construct-name',
+      expect(constructId('dev-waffle-stack', 'sns', 'construct-name')).toEqual(
+        'dev-waffle-stack-sns-construct-name',
       );
     });
   });
   describe('alarmConstructId', () => {
     it('should return the correct Alarm construct id', () => {
       expect(
-        alarmConstructId('dev-stack-name', 'construct-name', 'alarm-type'),
-      ).toEqual('dev-stack-name-cw-alarm-construct-name-alarm-type');
+        alarmConstructId('dev-waffle-stack', 'construct-name', 'alarm-type'),
+      ).toEqual('dev-waffle-stack-cw-alarm-construct-name-alarm-type');
     });
   });
   describe('arnExportName', () => {

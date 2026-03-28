@@ -12,8 +12,6 @@ import {
   BaseConstruct,
   resolveEnvProps,
   resolveAndMergeEnvProps,
-  constructId,
-  arnExportName,
 } from '../core';
 import { DynamoTableProps as DynamoTableConstructProps } from './dynamo.construct.props';
 import { dynamoTableName } from './dynamo.name.conventions';
@@ -45,9 +43,8 @@ export class DynamoTable extends BaseConstruct<TableV2> {
 
   constructor(scope: Construct, props: DynamoTableConstructProps) {
     const { config, tableName, dynamoProps, dynamoConfig } = props;
-    const resolvedTableName = dynamoTableName(tableName, config);
-    super(scope, 'dynamodb', resolvedTableName, config);
-    this.tableName = resolvedTableName;
+    super(scope, 'dynamodb', tableName, config);
+    this.tableName = dynamoTableName(tableName, config);
     const resolvedProps = resolveEnvProps(dynamoProps, config);
     const resolvedConfig = resolveAndMergeEnvProps(
       DYNAMO_ENVIRONMENTS_PROPS,
@@ -63,7 +60,7 @@ export class DynamoTable extends BaseConstruct<TableV2> {
     this.validateProps();
     this.resource = new TableV2(
       this,
-      constructId(config.stackName, 'dynamodb', tableName),
+      this.resolver.childId('dynamodb'),
       this.tableProps,
     );
   }
@@ -132,7 +129,7 @@ export class DynamoTable extends BaseConstruct<TableV2> {
    * Outputs the ARN of the DynamoDB table.
    */
   public outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName, {
       value: this.resource.tableArn,
       exportName,

@@ -28,7 +28,7 @@ export class EDABackgroundTasksQueue extends SQSBase {
       config,
       queueProps,
     );
-    super(scope, eventName, config, finalQueueProps);
+    super(scope, 'task', eventName, config, finalQueueProps);
   }
 
   public grantPolicies(iamRole: Role): void {
@@ -53,7 +53,7 @@ export class EDABackgroundTasksQueueFifo extends SQSBaseFifo {
       config,
       queueProps,
     );
-    super(scope, eventName, config, finalQueueProps);
+    super(scope, 'task', eventName, config, finalQueueProps);
   }
   public grantPolicies(iamRole: Role): void {
     this.resource.grantConsumeMessages(iamRole);

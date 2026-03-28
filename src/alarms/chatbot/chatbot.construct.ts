@@ -16,7 +16,7 @@ import {
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import { BaseConstruct, constructId, arnExportName } from '../../core';
+import { BaseConstruct } from '../../core';
 import { chatbotRoleName, slackConfigName } from '../alarms.name.conventions';
 import { createAlarmTopic } from '../alarm.topic';
 import { BaseConfig } from '../../core/base.config';
@@ -50,8 +50,7 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
 
   constructor(scope: Construct, props: ChatbotSlackChannelProps) {
     const { config, slackChannelIds, slackWorkspaceId } = props;
-    const resourceName = `${config.stackEnv}-${config.department}-chatBot-slack-alarm`;
-    super(scope, 'chatbot', resourceName, config);
+    super(scope, 'chatbot', 'slack-alarm', config);
     this.topic = this.createTopic(config);
     this.defaultProps = {
       slackChannelConfigurationName: slackConfigName(
@@ -68,7 +67,7 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
     };
     this.resource = new SlackChannelConfiguration(
       scope,
-      constructId(config.stackName, 'chatbot-slack', resourceName),
+      this.resolver.childId('chatbot-slack'),
       this.defaultProps,
     );
     this.snsAction = new SnsAction(this.topic);
@@ -107,23 +106,19 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
    * @returns Role
    */
   private slackChannelRole(scope: Construct, config: BaseConfig): Role {
-    return new Role(
-      scope,
-      constructId(config.stackName, 'chatbot-slack', 'role'),
-      {
-        roleName: chatbotRoleName(config.stackEnv, config.department),
-        description: 'Chatbot role for Slack channel configuration for ',
-        assumedBy: new ServicePrincipal('chatbot.amazonaws.com'),
-        managedPolicies: [
-          ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess'),
-          ManagedPolicy.fromAwsManagedPolicyName('AmazonSNSReadOnlyAccess'),
-        ],
-      },
-    );
+    return new Role(scope, this.resolver.childId('chatbot-slack', 'role'), {
+      roleName: chatbotRoleName(config.stackEnv, config.department),
+      description: 'Chatbot role for Slack channel configuration for ',
+      assumedBy: new ServicePrincipal('chatbot.amazonaws.com'),
+      managedPolicies: [
+        ManagedPolicy.fromAwsManagedPolicyName('CloudWatchReadOnlyAccess'),
+        ManagedPolicy.fromAwsManagedPolicyName('AmazonSNSReadOnlyAccess'),
+      ],
+    });
   }
 
   private createTopic(config: BaseConfig): Topic {
-    return createAlarmTopic(this, config, this.resourceName);
+    return createAlarmTopic(this, config, 'alarm-action');
   }
 
   /**
@@ -131,7 +126,7 @@ export class ChatbotSlackChannnel extends BaseConstruct<SlackChannelConfiguratio
    * @param topic
    */
   public outputSNSTopicArn(): void {
-    const exportName = arnExportName(this.topic.topicName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.topic.topicArn,
       exportName: exportName,

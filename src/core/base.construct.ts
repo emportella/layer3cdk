@@ -3,7 +3,7 @@ import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { BaseConfig } from './base.config';
 import { ResourceType } from './constants';
-import { alarmConstructId, constructId } from './name.conventions';
+import { ConstructIdResolver } from './construct.id.resolver';
 import { RemovalPolicy } from 'aws-cdk-lib';
 import { pascalCaseToKebabCase, trimDashes } from '../util';
 
@@ -15,6 +15,7 @@ import { pascalCaseToKebabCase, trimDashes } from '../util';
 export abstract class BaseConstruct<T> extends Construct {
   readonly resourceType: ResourceType;
   readonly resourceName: string;
+  readonly resolver: ConstructIdResolver;
   protected resource: T | undefined;
   protected readonly config: BaseConfig;
 
@@ -24,8 +25,13 @@ export abstract class BaseConstruct<T> extends Construct {
     resourceName: string,
     config: BaseConfig,
   ) {
-    const id = constructId(config.stackName, resourceType, resourceName);
-    super(scope, id);
+    const resolver = new ConstructIdResolver({
+      stackName: config.stackName,
+      resourceType,
+      resourceName,
+    });
+    super(scope, resolver.constructId);
+    this.resolver = resolver;
     this.resourceType = resourceType;
     this.resourceName = resourceName;
     this.config = config;
@@ -93,9 +99,7 @@ export abstract class BaseConstruct<T> extends Construct {
     const props: AlarmProps = consumer(this.resource, this.resourceName);
     const alarm = new Alarm(
       this,
-      alarmConstructId(
-        this.config.stackName,
-        this.resourceName,
+      this.resolver.alarmId(
         trimDashes(pascalCaseToKebabCase(shortKebabCasedMetricName)),
       ),
       {
@@ -118,14 +122,10 @@ export abstract class BaseConstruct<T> extends Construct {
     props: Omit<AlarmProps, 'actionsEnabled'>,
     ...alarmActions: IAlarmAction[]
   ): Alarm {
-    const alarm = new Alarm(
-      this,
-      alarmConstructId(this.config.stackName, this.resourceName, metricName),
-      {
-        ...props,
-        actionsEnabled: alarmActions.length > 0,
-      },
-    );
+    const alarm = new Alarm(this, this.resolver.alarmId(metricName), {
+      ...props,
+      actionsEnabled: alarmActions.length > 0,
+    });
     this.setAlarmActions(alarm, ...alarmActions);
     return alarm;
   }

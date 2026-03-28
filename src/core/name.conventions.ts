@@ -1,4 +1,4 @@
-import { trimDashes } from '../util';
+import { kebabToPascalCase, trimDashes } from '../util';
 import { AwsArnProps } from './base.construct.props';
 import { StackEnv, ResourceType } from './constants';
 
@@ -27,7 +27,7 @@ export const stackName = <T extends string, U extends StackEnv>(
   env: U,
   name: T,
 ): string => {
-  return validateName(`${env}-${trimDashes(name)}`, 'stackName');
+  return validateName(`${env}-${kebabToPascalCase(name)}`, 'stackName');
 };
 
 /**

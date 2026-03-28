@@ -7,7 +7,7 @@ import {
   Role,
 } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { BaseConfig, BaseConstruct, arnExportName, constructId } from '../core';
+import { BaseConfig, BaseConstruct, ConstructIdResolver } from '../core';
 import { ServiceAccountRoleProps } from './iam.construct.props';
 import {
   serviceAccountName,
@@ -34,27 +34,23 @@ export class ServiceAccountRole extends BaseConstruct<Role> {
       config.serviceName,
       config.stackEnv,
     );
-    super(scope, 'service-account-role', roleName, config);
+    super(scope, 'service-account-role', 'eks-sa', config);
     this.federatedPrincipal = new EksFederatedOIDCPrincipal(
       this,
       config,
       oidcProviderArns,
     );
-    this.resource = new Role(
-      scope,
-      constructId(config.stackName, 'role', roleName),
-      {
-        assumedBy: this.federatedPrincipal,
-        roleName: roleName,
-        path: '/eks-service-accounts/',
-      },
-    );
+    this.resource = new Role(scope, this.resolver.childId('role'), {
+      assumedBy: this.federatedPrincipal,
+      roleName: roleName,
+      path: '/eks-service-accounts/',
+    });
   }
   getArn(): string {
     return this.resource.roleArn;
   }
   outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.roleArn,
       exportName: exportName,
@@ -90,6 +86,12 @@ class EksFederatedOIDCPrincipal extends OpenIdConnectPrincipal {
   ) {
     const saName = serviceAccountName(serviceName || config.serviceName);
 
+    const oidcResolver = new ConstructIdResolver({
+      stackName: config.stackName,
+      resourceType: 'oidc-provider',
+      resourceName: saName,
+    });
+
     const eksClusterConfig = new EksClusterConfig(scope, {
       config,
       oidcProviderArns,
@@ -98,7 +100,7 @@ class EksFederatedOIDCPrincipal extends OpenIdConnectPrincipal {
     const openIdConnectProvider =
       OpenIdConnectProvider.fromOpenIdConnectProviderArn(
         scope,
-        constructId(config.stackName, 'oidc-provider', saName),
+        oidcResolver.constructId,
         eksClusterConfig.getOidcProviderArn(),
       );
 

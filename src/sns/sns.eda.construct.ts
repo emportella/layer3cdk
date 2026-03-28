@@ -8,7 +8,7 @@ import {
 import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import { BaseConfig, BaseConstruct, arnExportName, constructId } from '../core';
+import { BaseConfig, BaseConstruct } from '../core';
 import { EDASnsProps } from './sns.construct.props';
 import { snsTopicName } from './sns.name.conventions';
 
@@ -24,25 +24,18 @@ class SNSBase extends BaseConstruct<Topic> {
   constructor(
     scope: Construct,
     eventName: string,
-    topicName: string,
     config: BaseConfig,
     topicProps: TopicProps,
+    isFifo = false,
   ) {
-    super(scope, 'eda-sns', topicName, config);
+    const fifoSuffix = isFifo ? '-fifo' : '';
+    super(scope, 'eda-sns', `${eventName}${fifoSuffix}`, config);
     this.eventName = eventName;
     this.resource = this.createTopic(scope, topicProps);
   }
 
   private createTopic(scope: Construct, topicProps: TopicProps): Topic {
-    return new Topic(
-      scope,
-      constructId(
-        this.config.stackName,
-        'sns',
-        this.eventName + `${topicProps.fifo ? '.fifo' : ''}`,
-      ),
-      topicProps,
-    );
+    return new Topic(scope, this.resolver.childId('sns'), topicProps);
   }
 
   public getArn(): string {
@@ -50,7 +43,7 @@ class SNSBase extends BaseConstruct<Topic> {
   }
 
   public outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.topicArn,
       exportName: exportName,
@@ -108,7 +101,7 @@ export class EDASns extends SNSBase {
     let { topicProps } = props;
     const topicName = snsTopicName({ env: config.stackEnv, eventName });
     topicProps = { topicName, ...topicProps };
-    super(scope, eventName, topicName, config, topicProps);
+    super(scope, eventName, config, topicProps);
   }
 }
 
@@ -129,6 +122,6 @@ export class EDASnsFifo extends SNSBase {
     };
     topicProps = { ...defaultProp, ...topicProps };
     validateSnsFifoProps(topicProps);
-    super(scope, eventName, topicName, config, topicProps);
+    super(scope, eventName, config, topicProps, true);
   }
 }

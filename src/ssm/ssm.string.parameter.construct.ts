@@ -4,7 +4,7 @@ import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { Construct } from 'constructs';
 import { SSMContextLevel } from './ssm.contants';
 
-import { BaseConfig, BaseConstruct, constructId, arnExportName } from '../core';
+import { BaseConfig, BaseConstruct } from '../core';
 import { SSMStringParameterProps } from './ssm.construct.props';
 import { ssmParameterName } from './ssm.name.conventions';
 
@@ -26,16 +26,12 @@ class SSMStringParameter extends BaseConstruct<StringParameter> {
       env: config.stackEnv,
     });
 
-    super(scope, 'ssm-string-parameter', ssmStringParameterName, config);
+    super(scope, 'ssm-str-param', parameterName, config);
 
-    this.resource = new StringParameter(
-      scope,
-      constructId(config.stackName, 'ssm-string-parameter', parameterName),
-      {
-        parameterName: ssmStringParameterName,
-        stringValue: parameterValue,
-      },
-    );
+    this.resource = new StringParameter(this, 'Resource', {
+      parameterName: ssmStringParameterName,
+      stringValue: parameterValue,
+    });
   }
 
   protected getArn(): string {
@@ -43,7 +39,7 @@ class SSMStringParameter extends BaseConstruct<StringParameter> {
   }
 
   outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.parameterArn,
       exportName: exportName,

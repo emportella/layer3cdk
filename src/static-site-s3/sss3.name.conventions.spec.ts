@@ -8,7 +8,7 @@ describe('SSS3 Name Conventions', () => {
   describe('sss3BucketName', () => {
     it('should return the correct bucket name', () => {
       expect(sss3BucketName('admin-portal', testconfig)).toEqual(
-        'dev-rpj-test-app-admin-portal-assets',
+        'dev-banana-launcher-admin-portal-assets',
       );
     });
 
@@ -21,7 +21,7 @@ describe('SSS3 Name Conventions', () => {
   describe('sss3DistributionComment', () => {
     it('should return the correct distribution comment', () => {
       expect(sss3DistributionComment('admin-portal', testconfig)).toEqual(
-        'dev-rpj-test-app-admin-portal Distribution',
+        'dev-banana-launcher-admin-portal Distribution',
       );
     });
   });

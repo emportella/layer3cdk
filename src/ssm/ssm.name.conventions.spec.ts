@@ -7,8 +7,8 @@ describe('SSM Name Conventions', () => {
         expect(
           ssmParameterName({
             parameterName: 'sample',
-            serviceName: 'ServiceName',
-            department: 'rpj',
+            serviceName: 'PizzaCannon',
+            department: 'pltf',
             contextLevel: 'global',
             env: 'dev',
           }),
@@ -20,12 +20,12 @@ describe('SSM Name Conventions', () => {
         expect(
           ssmParameterName({
             parameterName: 'sample',
-            serviceName: 'ServiceName',
-            department: 'rpj',
+            serviceName: 'PizzaCannon',
+            department: 'pltf',
             contextLevel: 'department',
             env: 'dev',
           }),
-        ).toEqual('/dev/rpj/sample');
+        ).toEqual('/dev/pltf/sample');
       });
     });
     describe('given context is service', () => {
@@ -33,12 +33,12 @@ describe('SSM Name Conventions', () => {
         expect(
           ssmParameterName({
             parameterName: 'sample',
-            serviceName: 'ServiceName',
-            department: 'rpj',
+            serviceName: 'PizzaCannon',
+            department: 'pltf',
             contextLevel: 'service',
             env: 'dev',
           }),
-        ).toEqual('/dev/service-name/sample');
+        ).toEqual('/dev/pizza-cannon/sample');
       });
     });
   });

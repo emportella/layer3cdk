@@ -15,12 +15,12 @@ describe('ECR', () => {
     config = testconfig;
     repository = ApplicationRepository.create(stack, {
       config,
-      repositoryName: 'rpj-rp-tasks-service',
+      repositoryName: 'taco-rocket-service',
     }) as ApplicationRepository;
   });
   it('should create a ECR Repository with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'dev/rpj-rp-tasks-service',
+      RepositoryName: 'dev/taco-rocket-service',
       ImageScanningConfiguration: { ScanOnPush: true },
       ImageTagMutability: 'MUTABLE',
     });
@@ -32,8 +32,8 @@ describe('ECR', () => {
   it('should create a CloudFormation output for the repository ARN', () => {
     repository.outputArn();
     Template.fromStack(stack).hasOutput('*', {
-      Export: { Name: 'output-rpj-rp-tasks-service-arn' },
-      Description: `The ARN of the ecr repository rpj-rp-tasks-service`,
+      Export: { Name: 'output-pltf-banana-stack-taco-rocket-service-arn' },
+      Description: `The ARN of the ecr repository taco-rocket-service`,
     });
   });
   it('should grant the given IAM role permissions to pull and push images in this repository', () => {
@@ -160,11 +160,11 @@ describe('ECR', () => {
     const stgStack = new Stack();
     const stgRepo = ApplicationRepository.create(stgStack, {
       config: stgConfig,
-      repositoryName: 'rpj-rp-tasks-service',
+      repositoryName: 'taco-rocket-service',
     });
     expect(stgRepo).toBeDefined();
     Template.fromStack(stgStack).hasResourceProperties('AWS::ECR::Repository', {
-      RepositoryName: 'org/rpj-rp-tasks-service',
+      RepositoryName: 'org/taco-rocket-service',
       ImageScanningConfiguration: { ScanOnPush: true },
       ImageTagMutability: 'MUTABLE',
     });
@@ -182,7 +182,7 @@ describe('ECR', () => {
     const prdStack = new Stack();
     const prdRepo = ApplicationRepository.create(prdStack, {
       config: prdConfig,
-      repositoryName: 'rpj-rp-tasks-service',
+      repositoryName: 'taco-rocket-service',
     });
     expect(prdRepo).toBeUndefined();
   });

@@ -7,7 +7,7 @@ import {
 } from 'aws-cdk-lib/aws-ecr';
 import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import { BaseConfig, BaseConstruct, constructId, arnExportName } from '../core';
+import { BaseConfig, BaseConstruct } from '../core';
 import { ApplicationRepositoryProps } from './ecr.construct.props';
 
 class StandardRepository extends BaseConstruct<Repository> {
@@ -23,7 +23,7 @@ class StandardRepository extends BaseConstruct<Repository> {
     this.props = props;
     this.resource = new Repository(
       scope,
-      constructId(this.config.stackName, 'ecr-app', this.resourceName),
+      this.resolver.childId('ecr-app'),
       this.props,
     );
   }
@@ -34,7 +34,7 @@ class StandardRepository extends BaseConstruct<Repository> {
     return this.resource.repositoryArn;
   }
   public outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.repositoryArn,
       exportName: exportName,

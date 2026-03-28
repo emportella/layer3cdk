@@ -13,8 +13,9 @@ import {
 } from 'aws-cdk-lib/aws-sns-subscriptions';
 import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import { BaseConfig, BaseConstruct, constructId, arnExportName } from '../core';
+import { BaseConfig, BaseConstruct } from '../core';
 import { CfnSubscriptionProps } from './sqs.construct.props';
+import { EDAQueueType } from './sqs.constants';
 
 const validateFifoQueueProps = (queueProps: QueueProps): string[] => {
   const validationErrors: string[] = [];
@@ -35,21 +36,21 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
 
   constructor(
     scope: Construct,
+    queueType: EDAQueueType,
     eventName: string,
     config: BaseConfig,
     queueProps: QueueProps,
+    isFifo = false,
   ) {
-    super(scope, 'eda-sqs', queueProps.queueName as string, config);
+    const fifoSuffix = isFifo ? '-fifo' : '';
+    const logicalName = `${queueType}-${eventName}${fifoSuffix}`;
+    super(scope, 'eda-sqs', logicalName, config);
     this.resource = this.createQueue(scope, queueProps);
     this.eventName = eventName;
   }
 
   private createQueue(scope: Construct, queueProps: QueueProps): Queue {
-    return new Queue(
-      scope,
-      constructId(this.config.stackName, 'sqs', queueProps.queueName as string),
-      queueProps,
-    );
+    return new Queue(scope, this.resolver.childId('sqs'), queueProps);
   }
 
   private topicFromArn(arn: string): Topic {
@@ -82,11 +83,7 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
     const { arn, filterPolicyScope, filterPolicy } = props;
     new CfnSubscription(
       this,
-      constructId(
-        this.config.stackName,
-        'sns',
-        `subscription-${this.eventName}`,
-      ),
+      this.resolver.childId('sns', `subscription-${this.eventName}`),
       {
         endpoint: this.resource.queueArn,
         protocol: 'sqs',
@@ -118,11 +115,7 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
   ) {
     const topic = Topic.fromTopicArn(
       this,
-      constructId(
-        this.config.stackName,
-        'sns',
-        `imported-topic-${this.eventName}`,
-      ),
+      this.resolver.childId('sns', `imported-topic-${this.eventName}`),
       Fn.importValue(outputResourceId),
     ) as Topic;
     this.subscribeToSNSTopic(topic, sqsSubscriptionProps);
@@ -133,7 +126,7 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
   }
 
   protected outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.queueArn,
       exportName: exportName,
@@ -200,11 +193,12 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
 export abstract class SQSBaseFifo extends SQSBase {
   constructor(
     scope: Construct,
+    queueType: EDAQueueType,
     eventName: string,
     config: BaseConfig,
     queueProps: QueueProps,
   ) {
-    super(scope, eventName, config, queueProps);
+    super(scope, queueType, eventName, config, queueProps, true);
     this.node.addValidation({
       validate: () => validateFifoQueueProps(queueProps),
     });

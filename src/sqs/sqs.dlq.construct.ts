@@ -8,25 +8,21 @@ import {
 } from 'aws-cdk-lib/aws-cloudwatch';
 import { DeadLetterQueue, Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
-import {
-  BaseConfig,
-  BaseConstruct,
-  alarmConstructId,
-  constructId,
-  arnExportName,
-} from '../core';
+import { BaseConfig, BaseConstruct } from '../core';
 import { DLQFifoProps } from './sqs.construct.props';
 import { sqsDlqName } from './sqs.name.conventions';
+import { kebabToPascalCase } from '../util';
 
 class DLQBase extends BaseConstruct<Queue> {
   protected readonly resource: Queue;
-  constructor(scope: Construct, queueProps: QueueProps, config: BaseConfig) {
-    super(scope, 'sqs-dlq', queueProps.queueName as string, config);
-    this.resource = new Queue(
-      scope,
-      constructId(config.stackName, 'sqs', queueProps.queueName as string),
-      queueProps,
-    );
+  constructor(
+    scope: Construct,
+    logicalName: string,
+    queueProps: QueueProps,
+    config: BaseConfig,
+  ) {
+    super(scope, 'sqs-dlq', logicalName, config);
+    this.resource = new Queue(scope, this.resolver.childId('sqs'), queueProps);
   }
 
   public getArn(): string {
@@ -34,7 +30,7 @@ class DLQBase extends BaseConstruct<Queue> {
   }
 
   public outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.queueArn,
       exportName: exportName,
@@ -47,28 +43,19 @@ class DLQBase extends BaseConstruct<Queue> {
     this.resource.applyRemovalPolicy(removalPolicy);
   }
   public setCloudWatchAlarms(...alarmActions: IAlarmAction[]): void {
-    const alarm = new Alarm(
-      this,
-      alarmConstructId(
-        this.config.stackName,
-        this.resourceName,
-        'messages-in-dlq',
-      ),
-      {
-        metric: this.resource.metricApproximateNumberOfMessagesVisible({
-          period: Duration.minutes(1),
-          statistic: Stats.MAXIMUM,
-        }),
-        threshold: 1,
-        alarmName: `${this.resourceName} Dead Letter Queue Alarm`,
-        evaluationPeriods: 2,
-        alarmDescription: `Alarm if any message is in the dead letter queue for ${this.resourceName}`,
-        comparisonOperator:
-          ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-        treatMissingData: TreatMissingData.IGNORE,
-        actionsEnabled: alarmActions.length > 0 ? true : false,
-      },
-    );
+    const alarm = new Alarm(this, this.resolver.alarmId('messages-in-dlq'), {
+      metric: this.resource.metricApproximateNumberOfMessagesVisible({
+        period: Duration.minutes(1),
+        statistic: Stats.MAXIMUM,
+      }),
+      threshold: 1,
+      alarmName: `${this.resourceName} Dead Letter Queue Alarm`,
+      evaluationPeriods: 2,
+      alarmDescription: `Alarm if any message is in the dead letter queue for ${this.resourceName}`,
+      comparisonOperator: ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+      treatMissingData: TreatMissingData.IGNORE,
+      actionsEnabled: alarmActions.length > 0 ? true : false,
+    });
     this.setAlarmActions(alarm, ...alarmActions);
   }
   /**
@@ -96,7 +83,7 @@ export class DLQ extends DLQBase {
       }),
       retentionPeriod: Duration.days(14),
     };
-    super(scope, queueProps, config);
+    super(scope, kebabToPascalCase(config.serviceName), queueProps, config);
   }
 }
 
@@ -117,6 +104,9 @@ export class DLQFifo extends DLQBase {
       fifo: true,
       contentBasedDeduplication: true,
     };
-    super(scope, queueProps, config);
+    const baseName = kebabToPascalCase(
+      eventName !== undefined ? eventName : config.serviceName,
+    );
+    super(scope, `${baseName}-fifo`, queueProps, config);
   }
 }

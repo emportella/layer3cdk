@@ -27,13 +27,7 @@ import { ARecord, AaaaRecord, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { PolicyStatement, Effect, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
-import {
-  BaseConstruct,
-  constructId,
-  arnExportName,
-  outputExportName,
-  resolveAndMergeEnvProps,
-} from '../core';
+import { BaseConstruct, resolveAndMergeEnvProps } from '../core';
 import { SSS3Props, CertificateConfig } from './sss3.construct.props';
 import { SSS3Config, SSS3_ENVIRONMENTS_PROPS } from './sss3.default.props';
 import {
@@ -96,7 +90,7 @@ export class SSS3 extends BaseConstruct<Distribution> {
     const bucketName = sss3BucketName(siteName, config);
     this.bucket = new Bucket(
       this,
-      constructId(config.stackName, 's3-static-site', `${siteName}-bucket`),
+      this.resolver.childId('s3-static-site', 'bucket'),
       {
         bucketName,
         blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
@@ -140,7 +134,7 @@ export class SSS3 extends BaseConstruct<Distribution> {
     // 5. Create CloudFront Distribution
     this.distribution = new Distribution(
       this,
-      constructId(config.stackName, 's3-static-site', `${siteName}-dist`),
+      this.resolver.childId('s3-static-site', 'dist'),
       {
         defaultBehavior: {
           origin: S3BucketOrigin.withOriginAccessControl(this.bucket),
@@ -166,24 +160,16 @@ export class SSS3 extends BaseConstruct<Distribution> {
     const target = RecordTarget.fromAlias(
       new CloudFrontTarget(this.distribution),
     );
-    new ARecord(
-      this,
-      constructId(config.stackName, 's3-static-site', `${siteName}-a`),
-      {
-        zone: hostedZone,
-        recordName: domainName,
-        target,
-      },
-    );
-    new AaaaRecord(
-      this,
-      constructId(config.stackName, 's3-static-site', `${siteName}-aaaa`),
-      {
-        zone: hostedZone,
-        recordName: domainName,
-        target,
-      },
-    );
+    new ARecord(this, this.resolver.childId('s3-static-site', 'a'), {
+      zone: hostedZone,
+      recordName: domainName,
+      target,
+    });
+    new AaaaRecord(this, this.resolver.childId('s3-static-site', 'aaaa'), {
+      zone: hostedZone,
+      recordName: domainName,
+      target,
+    });
 
     // 7. Validate
     this.validateProps();
@@ -256,28 +242,19 @@ export class SSS3 extends BaseConstruct<Distribution> {
   private createOutputs(): void {
     new CfnOutput(this, 'DistributionId', {
       value: this.distribution.distributionId,
-      exportName: outputExportName({
-        resourceName: this.resourceName,
-        paramType: 'distribution-id',
-      }),
+      exportName: this.resolver.outputExportName('distribution-id'),
       description: `CloudFront distribution ID for ${this.domainName}`,
     });
 
     new CfnOutput(this, 'DistributionDomainName', {
       value: this.distribution.distributionDomainName,
-      exportName: outputExportName({
-        resourceName: this.resourceName,
-        paramType: 'distribution-domain',
-      }),
+      exportName: this.resolver.outputExportName('distribution-domain'),
       description: `CloudFront domain name for ${this.domainName}`,
     });
 
     new CfnOutput(this, 'BucketName', {
       value: this.bucket.bucketName,
-      exportName: outputExportName({
-        resourceName: this.resourceName,
-        paramType: 'bucket-name',
-      }),
+      exportName: this.resolver.outputExportName('bucket-name'),
       description: `S3 bucket name for ${this.domainName}`,
     });
   }
@@ -294,7 +271,7 @@ export class SSS3 extends BaseConstruct<Distribution> {
 
   /** Exports the distribution ARN as a CloudFormation output. */
   public outputArn(): void {
-    const exportName = arnExportName(this.resourceName);
+    const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {
       value: this.getArn(),
       exportName,

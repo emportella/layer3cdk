@@ -54,9 +54,10 @@ export type ResourceType =
   | 'sqs-dlq'
   | 'sqs'
   | 'stack'
-  | 'ssm-string-parameter'
+  | 'ssm-str-param'
   | 'ecr'
   | 'ecr-app'
+  | 'lambda'
   | 'redis-replication-group'
   | 's3-static-site';
 
@@ -70,27 +71,35 @@ export type Department = string;
  * Built-in department values shipped with Layer3CDK.
  */
 export const DEFAULT_DEPARTMENTS = [
-  'org',
-  'ap',
-  'awa',
-  'csr',
-  'da',
-  'ds',
-  'dsj',
-  'fnt',
+  'ops',
+  'fe',
+  'be',
   'infra',
   'it',
-  'mob',
   'pltf',
-  'pm',
   'qa',
-  'rpj',
-  'sch',
-  'tss',
-  'uie',
 ] as const;
 
 /**
  * Convenience alias for the built-in department literals.
  */
 export type DefaultDepartment = (typeof DEFAULT_DEPARTMENTS)[number];
+
+/**
+ * Built-in tag keys shipped with Layer3CDK.
+ * Uses PascalCase colon-namespaced convention:
+ * - `Ownership:*` — team and organizational ownership
+ * - `Eng:*` — engineering/technical metadata
+ *
+ * Values are empty strings — meant to be filled in by the consumer.
+ * Users can extend or override via the `tags` section in `layer3cdk` config.
+ */
+export const DEFAULT_TAGS: Record<string, string> = {
+  'Eng:Env': '',
+  'Ownership:Department': '',
+  'Ownership:Organization': '',
+  'Ownership:Team': '',
+  'Eng:Application': '',
+  'Eng:Repository': '',
+  'Eng:ManagedBy': 'cdk',
+};

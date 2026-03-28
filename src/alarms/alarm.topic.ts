@@ -1,7 +1,7 @@
 import { Effect, PolicyStatement, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import { BaseConfig, constructId } from '../core';
+import { BaseConfig, ConstructIdResolver } from '../core';
 import { alarmTopicName } from './alarms.name.conventions';
 import { AlarmActionType } from './alarmAction/alarmActions.constants';
 
@@ -11,7 +11,7 @@ import { AlarmActionType } from './alarmAction/alarmActions.constants';
  *
  * @param scope - The construct scope.
  * @param config - The BaseConfig object.
- * @param topicId - A unique identifier for the topic construct ID.
+ * @param topicId - A unique logical identifier for the topic construct ID.
  * @param alarmActionType - Optional alarm action type appended to the topic name.
  * @returns The created SNS topic.
  */
@@ -21,17 +21,18 @@ export const createAlarmTopic = (
   topicId: string,
   alarmActionType?: AlarmActionType,
 ): Topic => {
-  const topic = new Topic(
-    scope,
-    constructId(config.stackName, 'sns-cwaction', topicId),
-    {
-      topicName: alarmTopicName({
-        env: config.stackEnv,
-        department: config.department,
-        alarmActionType,
-      }),
-    },
-  );
+  const resolver = new ConstructIdResolver({
+    stackName: config.stackName,
+    resourceType: 'sns-cwaction',
+    resourceName: topicId,
+  });
+  const topic = new Topic(scope, resolver.constructId, {
+    topicName: alarmTopicName({
+      env: config.stackEnv,
+      department: config.department,
+      alarmActionType,
+    }),
+  });
   topic.addToResourcePolicy(
     new PolicyStatement({
       effect: Effect.ALLOW,

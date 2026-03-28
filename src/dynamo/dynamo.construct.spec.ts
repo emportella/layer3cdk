@@ -59,7 +59,7 @@ describe('DynamoTable', () => {
     Template.fromStack(stack).hasResourceProperties(
       'AWS::DynamoDB::GlobalTable',
       {
-        TableName: 'dev-RpjTestApp-MyTable',
+        TableName: 'dev-BananaLauncher-MyTable',
       },
     );
   });
@@ -150,6 +150,7 @@ describe('DynamoTable', () => {
     );
   });
   it('should have ContributorInsightsSpecification, PointInTimeRecoverySpecification, DeletionProtectionEnabled enabled in production envs', () => {
+    const prdStack = new Stack();
     config = new BaseConfig({
       department: config.department,
       env: config.env,
@@ -160,13 +161,13 @@ describe('DynamoTable', () => {
       description: config.description,
     });
 
-    new DynamoTable(stack, {
+    new DynamoTable(prdStack, {
       config,
       tableName,
       dynamoProps: envDynamicProps,
       dynamoConfig: envDynamicConfig,
     });
-    Template.fromStack(stack).hasResourceProperties(
+    Template.fromStack(prdStack).hasResourceProperties(
       'AWS::DynamoDB::GlobalTable',
       {
         Replicas: [

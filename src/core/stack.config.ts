@@ -4,6 +4,7 @@ import {
   AWSRegion,
   DEFAULT_ENVS,
   DEFAULT_DEPARTMENTS,
+  DEFAULT_TAGS,
 } from './constants';
 import { BaseConfig } from './base.config';
 import { ResourceTags } from './tags';
@@ -72,12 +73,13 @@ export class BaseStackConfig {
       const region = BaseStackConfig.getAWSRegionFromContext(app);
       const layer3Config = BaseStackConfig.getLayer3ConfigFromContext(app);
 
-      const resolvedEnvs = resolveArraySection(DEFAULT_ENVS, layer3Config.envs);
+      const resolved = resolveArraySection(DEFAULT_ENVS, layer3Config.envs);
+      const resolvedEnvs = resolved.length > 0 ? resolved : ['main'];
       const resolvedDepartments = resolveArraySection(
         DEFAULT_DEPARTMENTS,
         layer3Config.departments,
       );
-      const customTags = resolveObjectSection({}, layer3Config.tags);
+      const customTags = resolveObjectSection(DEFAULT_TAGS, layer3Config.tags);
 
       const stackEnv = BaseStackConfig.getStackEnvFromContext(
         app,
@@ -180,14 +182,17 @@ export class BaseStackConfig {
   }
 
   /**
-   * Returns tags with custom tags merged in and `tag:env` set to the current environment.
-   * Merge order: customTags (base) → input tags (stack-specific) → tag:env (always wins).
+   * Returns tags with custom tags merged in and auto-set tags applied.
+   * Merge order: customTags (base) → input tags (stack-specific) → auto-set tags (always win).
+   * Auto-set tags: `Eng:Env` (from stackEnv), `Eng:ManagedBy` ('cdk').
+   * These are always present even if tags are overridden with an empty object.
    */
   public getUpdatedResourceTags(tags: ResourceTags): ResourceTags {
     return {
       ...this.customTags,
       ...tags,
-      'tag:env': this.stackEnv,
+      'Eng:Env': this.stackEnv,
+      'Eng:ManagedBy': 'cdk',
     };
   }
 

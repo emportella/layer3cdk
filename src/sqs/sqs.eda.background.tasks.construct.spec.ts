@@ -3,7 +3,7 @@ import { Template } from 'aws-cdk-lib/assertions';
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { Topic } from 'aws-cdk-lib/aws-sns';
-import { BaseConfig, constructId } from '../core';
+import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
   EDABackgroundTasksQueue,
@@ -34,7 +34,7 @@ describe('EDABackgroundTasksQueue', () => {
     });
     backgroundTaskQueueRef = stack.getLogicalId(
       stack.node.findChild(
-        constructId(config.stackName, 'sqs', backgroundTaskQueue.resourceName),
+        `${config.stackName}-sqs-${backgroundTaskQueue.resourceName}`,
       ).node.defaultChild as CfnElement,
     );
     backgroundTaskQueueFifo = new EDABackgroundTasksQueueFifo(stack, {
@@ -48,12 +48,12 @@ describe('EDABackgroundTasksQueue', () => {
   });
   it('should create a queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-task-RpjTestApp-TestEventCreated',
+      QueueName: 'dev-task-BananaLauncher-TestEventCreated',
       MessageRetentionPeriod: 1209600,
       VisibilityTimeout: 30,
     });
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-dlq-RpjTestApp',
+      QueueName: 'dev-dlq-BananaLauncher',
       MessageRetentionPeriod: 1209600,
     });
   });
@@ -61,7 +61,7 @@ describe('EDABackgroundTasksQueue', () => {
     backgroundTaskQueueFifo.resourceRemovalPolicy(RemovalPolicy.RETAIN);
     Template.fromStack(stack).hasResource('AWS::SQS::Queue', {
       Properties: {
-        QueueName: 'dev-task-RpjTestApp-TestEventCreated.fifo',
+        QueueName: 'dev-task-BananaLauncher-TestEventCreated.fifo',
       },
       UpdateReplacePolicy: 'Retain',
       DeletionPolicy: 'Retain',
@@ -73,7 +73,7 @@ describe('EDABackgroundTasksQueue', () => {
       ActionsEnabled: false,
       AlarmDescription:
         'Alarm if the oldest message in the queue is older than 60 seconds',
-      AlarmName: 'dev-task-RpjTestApp-TestEventCreated Stale Old Message Alarm',
+      AlarmName: 'task-TestEventCreated Stale Old Message Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateAgeOfOldestMessage',
@@ -86,8 +86,7 @@ describe('EDABackgroundTasksQueue', () => {
       ActionsEnabled: false,
       AlarmDescription:
         'Alarm if the number of messages in the queue is greater than 100',
-      AlarmName:
-        'dev-task-RpjTestApp-TestEventCreated High Number of Messages Alarm',
+      AlarmName: 'task-TestEventCreated High Number of Messages Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateNumberOfMessagesVisible',
@@ -102,14 +101,13 @@ describe('EDABackgroundTasksQueue', () => {
     const topicRef = stack.getLogicalId(topic.node.defaultChild as CfnElement);
     backgroundTaskQueue.setCloudWatchAlarms(new SnsAction(topic));
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName: 'dev-task-RpjTestApp-TestEventCreated Stale Old Message Alarm',
+      AlarmName: 'task-TestEventCreated Stale Old Message Alarm',
       ActionsEnabled: true,
       AlarmActions: [{ Ref: topicRef }],
       OKActions: [{ Ref: topicRef }],
     });
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName:
-        'dev-task-RpjTestApp-TestEventCreated High Number of Messages Alarm',
+      AlarmName: 'task-TestEventCreated High Number of Messages Alarm',
       ActionsEnabled: true,
       AlarmActions: [{ Ref: topicRef }],
       OKActions: [{ Ref: topicRef }],

@@ -1,20 +1,20 @@
 import { BaseConfig } from '../core';
 
 export const testconfig = new BaseConfig({
-  department: 'rpj',
+  department: 'pltf',
   env: { account: '123456789012', region: 'us-east-1' },
-  stackName: 'rpj-test-stack',
+  stackName: 'pltf-banana-stack',
   tags: {
-    'tag:tagSchemaVersion': '0.1',
-    'tag:env': 'dev',
-    'tag:ownership:department': 'productDevelopment',
-    'tag:ownership:orgDomain': 'infra',
-    'tag:ownership:team': 'testTeam',
-    'tag:tech:application': 'testApp',
-    'tag:tech:repository': 'testRepo',
-    'tag:tech:managedBy': 'cdk',
+    TagSchemaVersion: '0.1',
+    'Eng:Env': 'dev',
+    'Ownership:Department': 'pltf',
+    'Ownership:Organization': 'Layer3CDK',
+    'Ownership:Team': 'Layer3',
+    'Eng:Application': 'bananaLauncher',
+    'Eng:Repository': 'banana-launcher-repo',
+    'Eng:ManagedBy': 'cdk',
   },
   stackEnv: 'dev',
-  serviceName: 'rpj-test-app',
+  serviceName: 'banana-launcher',
   description: 'My description',
 });

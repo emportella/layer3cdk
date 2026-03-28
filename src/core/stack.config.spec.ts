@@ -1,5 +1,6 @@
 import { App } from 'aws-cdk-lib';
 import { BaseStackConfig } from './stack.config';
+import { DEFAULT_TAGS } from './constants';
 import { ResourceTags } from './tags';
 import * as layer3cdkConfig from './layer3cdk.config';
 
@@ -85,9 +86,9 @@ describe('BaseStackConfig', () => {
     });
 
     it('should return the correct StackName', () => {
-      expect(BaseStackConfig.getInstance(app).getStackName('ab-stack')).toEqual(
-        `${env}-ab-stack`,
-      );
+      expect(
+        BaseStackConfig.getInstance(app).getStackName('nacho-stack'),
+      ).toEqual(`${env}-NachoStack`);
     });
   });
 
@@ -99,9 +100,9 @@ describe('BaseStackConfig', () => {
 
     it('should use default departments', () => {
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getResolvedDepartments()).toContain('rpj');
-      expect(instance.getResolvedDepartments()).toContain('org');
-      expect(instance.getResolvedDepartments().length).toBe(18);
+      expect(instance.getResolvedDepartments()).toContain('pltf');
+      expect(instance.getResolvedDepartments()).toContain('ops');
+      expect(instance.getResolvedDepartments().length).toBe(7);
     });
 
     it('should return undefined team and department', () => {
@@ -110,31 +111,31 @@ describe('BaseStackConfig', () => {
       expect(instance.getDepartment()).toBeUndefined();
     });
 
-    it('should return empty custom tags', () => {
+    it('should return default tags when no custom tags configured', () => {
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getCustomTags()).toEqual({});
+      expect(instance.getCustomTags()).toEqual(DEFAULT_TAGS);
     });
   });
 
   describe('layer3cdk config via context object', () => {
     it('should parse config from context object', () => {
       app.node.setContext('layer3cdk', {
-        team: 'platform-eng',
-        department: 'infra',
+        team: 'Layer3',
+        department: 'ops',
       });
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getTeam()).toEqual('platform-eng');
-      expect(instance.getDepartment()).toEqual('infra');
+      expect(instance.getTeam()).toEqual('Layer3');
+      expect(instance.getDepartment()).toEqual('ops');
     });
 
     it('should parse config from JSON string', () => {
       app.node.setContext(
         'layer3cdk',
-        JSON.stringify({ team: 'payments', department: 'fnt' }),
+        JSON.stringify({ team: 'Layer3', department: 'fe' }),
       );
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getTeam()).toEqual('payments');
-      expect(instance.getDepartment()).toEqual('fnt');
+      expect(instance.getTeam()).toEqual('Layer3');
+      expect(instance.getDepartment()).toEqual('fe');
     });
 
     it('should throw on invalid JSON string', () => {
@@ -147,12 +148,12 @@ describe('BaseStackConfig', () => {
     it('should load config from JSON file path', () => {
       const spy = jest
         .spyOn(layer3cdkConfig, 'loadLayer3Config')
-        .mockReturnValue({ team: 'data-team', department: 'da' });
+        .mockReturnValue({ team: 'Layer3', department: 'qa' });
       app.node.setContext('layer3cdk', './l3-config.json');
       const instance = BaseStackConfig.getInstance(app);
       expect(spy).toHaveBeenCalledWith('./l3-config.json');
-      expect(instance.getTeam()).toEqual('data-team');
-      expect(instance.getDepartment()).toEqual('da');
+      expect(instance.getTeam()).toEqual('Layer3');
+      expect(instance.getDepartment()).toEqual('qa');
       spy.mockRestore();
     });
   });
@@ -212,6 +213,16 @@ describe('BaseStackConfig', () => {
       );
     });
 
+    it('should fallback to ["main"] when override has empty values', () => {
+      app.node.setContext('layer3cdk', {
+        envs: { mode: 'override', values: [] },
+      });
+      app.node.setContext('env', 'main');
+      const instance = BaseStackConfig.getInstance(app);
+      expect(instance.getResolvedEnvs()).toEqual(['main']);
+      expect(instance.getStackEnv()).toEqual('main');
+    });
+
     it('should deduplicate when extending', () => {
       app.node.setContext('layer3cdk', {
         envs: { mode: 'extend', values: ['dev', 'qa'] },
@@ -224,39 +235,44 @@ describe('BaseStackConfig', () => {
   describe('departments config section', () => {
     it('should extend defaults with additional departments', () => {
       app.node.setContext('layer3cdk', {
-        departments: { mode: 'extend', values: ['custom-dept'] },
+        departments: { mode: 'extend', values: ['taco-dept'] },
       });
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getResolvedDepartments()).toContain('custom-dept');
-      expect(instance.getResolvedDepartments()).toContain('rpj');
+      expect(instance.getResolvedDepartments()).toContain('taco-dept');
+      expect(instance.getResolvedDepartments()).toContain('ops');
     });
 
     it('should override defaults with custom departments', () => {
       app.node.setContext('layer3cdk', {
-        departments: { mode: 'override', values: ['eng', 'ops', 'data'] },
+        departments: { mode: 'override', values: ['taco', 'nacho', 'waffle'] },
       });
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getResolvedDepartments()).toEqual(['eng', 'ops', 'data']);
+      expect(instance.getResolvedDepartments()).toEqual([
+        'taco',
+        'nacho',
+        'waffle',
+      ]);
     });
   });
 
   describe('tags config section', () => {
-    it('should return empty custom tags when not configured', () => {
+    it('should return default tags when not configured', () => {
       const instance = BaseStackConfig.getInstance(app);
-      expect(instance.getCustomTags()).toEqual({});
+      expect(instance.getCustomTags()).toEqual(DEFAULT_TAGS);
     });
 
-    it('should extend with custom tags', () => {
+    it('should extend defaults with custom tags', () => {
       app.node.setContext('layer3cdk', {
         tags: {
           mode: 'extend',
-          values: { 'cost-center': 'CC-123', project: 'atlas' },
+          values: { 'cost-center': 'CC-TACO', project: 'banana-cannon' },
         },
       });
       const instance = BaseStackConfig.getInstance(app);
       expect(instance.getCustomTags()).toEqual({
-        'cost-center': 'CC-123',
-        project: 'atlas',
+        ...DEFAULT_TAGS,
+        'cost-center': 'CC-TACO',
+        project: 'banana-cannon',
       });
     });
 
@@ -272,36 +288,32 @@ describe('BaseStackConfig', () => {
   describe('getUpdatedResourceTags', () => {
     it('should return updated tags with env overwritten', () => {
       const tags: ResourceTags = {
-        'tag:tagSchemaVersion': '0.1',
-        'tag:env': 'prd',
-        'tag:ownership:department': 'productDevelopment',
-        'tag:ownership:team': 'testTeam',
+        TagSchemaVersion: '0.1',
+        'Eng:Env': 'prd',
+        'Ownership:Department': 'pltf',
+        'Ownership:Team': 'Layer3',
       };
-      expect(
-        BaseStackConfig.getInstance(app).getUpdatedResourceTags(tags),
-      ).toEqual({
-        'tag:tagSchemaVersion': '0.1',
-        'tag:env': env,
-        'tag:ownership:department': 'productDevelopment',
-        'tag:ownership:team': 'testTeam',
-      });
+      const result =
+        BaseStackConfig.getInstance(app).getUpdatedResourceTags(tags);
+      expect(result['TagSchemaVersion']).toEqual('0.1');
+      expect(result['Eng:Env']).toEqual(env);
+      expect(result['Ownership:Department']).toEqual('pltf');
+      expect(result['Ownership:Team']).toEqual('Layer3');
     });
 
     it('should merge custom tags from layer3cdk config', () => {
       app.node.setContext('layer3cdk', {
         tags: {
           mode: 'extend',
-          values: { 'cost-center': 'CC-123' },
+          values: { 'cost-center': 'CC-TACO' },
         },
       });
-      const tags: ResourceTags = { 'tag:env': 'prd', app: 'myApp' };
+      const tags: ResourceTags = { 'Eng:Env': 'prd', app: 'rocketToaster' };
       const result =
         BaseStackConfig.getInstance(app).getUpdatedResourceTags(tags);
-      expect(result).toEqual({
-        'cost-center': 'CC-123',
-        'tag:env': env,
-        app: 'myApp',
-      });
+      expect(result['cost-center']).toEqual('CC-TACO');
+      expect(result['Eng:Env']).toEqual(env);
+      expect(result['app']).toEqual('rocketToaster');
     });
 
     it('should let input tags override custom tags', () => {
@@ -318,61 +330,61 @@ describe('BaseStackConfig', () => {
   describe('createBaseConfig', () => {
     it('should create a BaseConfig with resolved values', () => {
       app.node.setContext('layer3cdk', {
-        team: 'platform-eng',
-        department: 'infra',
-        tags: { mode: 'extend', values: { 'cost-center': 'CC-123' } },
+        team: 'Layer3',
+        department: 'pltf',
+        tags: { mode: 'extend', values: { 'cost-center': 'CC-TACO' } },
       });
       const instance = BaseStackConfig.getInstance(app);
       const config = instance.createBaseConfig({
-        serviceName: 'my-service',
-        stackName: 'my-stack',
-        tags: { app: 'myApp' },
+        serviceName: 'rocket-toaster',
+        stackName: 'waffle-stack',
+        tags: { app: 'rocketToaster' },
       });
       expect(config.stackEnv).toEqual(env);
-      expect(config.department).toEqual('infra');
-      expect(config.team).toEqual('platform-eng');
-      expect(config.serviceName).toEqual('my-service');
-      expect(config.stackName).toEqual('dev-my-stack');
+      expect(config.department).toEqual('pltf');
+      expect(config.team).toEqual('Layer3');
+      expect(config.serviceName).toEqual('rocket-toaster');
+      expect(config.stackName).toEqual('dev-WaffleStack');
       expect(config.env).toEqual({ account, region });
-      expect(config.tags['cost-center']).toEqual('CC-123');
-      expect(config.tags['app']).toEqual('myApp');
-      expect(config.tags['tag:env']).toEqual(env);
+      expect(config.tags['cost-center']).toEqual('CC-TACO');
+      expect(config.tags['app']).toEqual('rocketToaster');
+      expect(config.tags['Eng:Env']).toEqual(env);
     });
 
     it('should allow overriding department per config', () => {
-      app.node.setContext('layer3cdk', { department: 'infra' });
+      app.node.setContext('layer3cdk', { department: 'pltf' });
       const instance = BaseStackConfig.getInstance(app);
       const config = instance.createBaseConfig({
-        serviceName: 'svc',
-        stackName: 'stk',
-        department: 'rpj',
+        serviceName: 'llama-api',
+        stackName: 'llama-stack',
+        department: 'ops',
       });
-      expect(config.department).toEqual('rpj');
+      expect(config.department).toEqual('ops');
     });
 
     it('should fallback to singleton department', () => {
-      app.node.setContext('layer3cdk', { department: 'infra' });
+      app.node.setContext('layer3cdk', { department: 'pltf' });
       const instance = BaseStackConfig.getInstance(app);
       const config = instance.createBaseConfig({
-        serviceName: 'svc',
-        stackName: 'stk',
+        serviceName: 'llama-api',
+        stackName: 'llama-stack',
       });
-      expect(config.department).toEqual('infra');
+      expect(config.department).toEqual('pltf');
     });
 
     it('should throw on invalid department when departments are configured', () => {
       app.node.setContext('layer3cdk', {
-        departments: { mode: 'override', values: ['eng', 'ops'] },
+        departments: { mode: 'override', values: ['taco', 'nacho'] },
       });
       const instance = BaseStackConfig.getInstance(app);
       expect(() =>
         instance.createBaseConfig({
-          serviceName: 'svc',
-          stackName: 'stk',
-          department: 'invalid',
+          serviceName: 'llama-api',
+          stackName: 'llama-stack',
+          department: 'pineapple',
         }),
       ).toThrow(
-        '[Layer3CDK] Invalid department "invalid". Valid departments: [eng, ops]',
+        '[Layer3CDK] Invalid department "pineapple". Valid departments: [taco, nacho]',
       );
     });
   });
@@ -380,15 +392,15 @@ describe('BaseStackConfig', () => {
   describe('logging', () => {
     it('should log resolved configuration on init', () => {
       app.node.setContext('layer3cdk', {
-        team: 'test-team',
-        department: 'rpj',
+        team: 'Layer3',
+        department: 'pltf',
       });
       BaseStackConfig.getInstance(app);
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('[Layer3CDK] Resolved configuration:'),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining('test-team'),
+        expect.stringContaining('Layer3'),
       );
     });
   });
@@ -396,8 +408,8 @@ describe('BaseStackConfig', () => {
   describe('getLayer3Config', () => {
     it('should return the full parsed config', () => {
       const configObj = {
-        team: 'my-team',
-        department: 'my-dept',
+        team: 'Layer3',
+        department: 'pancake',
         envs: { mode: 'extend' as const, values: ['qa'] },
       };
       app.node.setContext('layer3cdk', configObj);

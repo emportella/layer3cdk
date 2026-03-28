@@ -32,7 +32,7 @@ describe('Chatbot', () => {
     template.hasResourceProperties(
       'AWS::Chatbot::SlackChannelConfiguration',
       Match.objectLike({
-        ConfigurationName: 'dev-rpj-chatBot-slack-alarm',
+        ConfigurationName: 'dev-pltf-chatBot-slack-alarm',
         SlackChannelId: 'dev-channel-id',
         SlackWorkspaceId: 'SLACK1234CINCO',
       }),
@@ -42,7 +42,7 @@ describe('Chatbot', () => {
     template.hasResourceProperties(
       'AWS::SNS::Topic',
       Match.objectLike({
-        TopicName: 'dev-rpj-alarm-action',
+        TopicName: 'dev-pltf-alarm-action',
       }),
     );
   });
@@ -64,7 +64,7 @@ describe('Chatbot', () => {
   });
   it('Should create IAM Role for Chatbot', () => {
     template.hasResourceProperties('AWS::IAM::Role', {
-      RoleName: 'dev-rpj-chatbot-role',
+      RoleName: 'dev-pltf-chatbot-role',
       AssumeRolePolicyDocument: {
         Statement: [
           {

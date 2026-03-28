@@ -63,7 +63,7 @@ export class EDAFaninQueue extends SQSBase {
       config,
       queueProps,
     );
-    super(scope, eventName, config, finalQueueProps);
+    super(scope, 'fanin', eventName, config, finalQueueProps);
   }
 }
 
@@ -83,6 +83,6 @@ export class EDAFaninQueueFifo extends SQSBaseFifo {
       config,
       queueProps,
     );
-    super(scope, eventName, config, finalQueueProps);
+    super(scope, 'fanin', eventName, config, finalQueueProps);
   }
 }

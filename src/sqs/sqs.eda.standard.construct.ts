@@ -27,7 +27,7 @@ export class EDAStandardQueue extends SQSBase {
       config,
       queueProps,
     );
-    super(scope, eventName, config, finalQueueProps);
+    super(scope, 'st', eventName, config, finalQueueProps);
   }
 }
 
@@ -47,6 +47,6 @@ export class EDAStandardQueueFifo extends SQSBaseFifo {
       config,
       queueProps,
     );
-    super(scope, eventName, config, finalQueueProps);
+    super(scope, 'st', eventName, config, finalQueueProps);
   }
 }

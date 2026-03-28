@@ -360,7 +360,7 @@ describe('SSS3', () => {
       '*',
       Match.objectLike({
         Export: {
-          Name: `output-${siteName}-distribution-id`,
+          Name: `output-${config.stackName}-${siteName}-distribution-id`,
         },
       }),
     );
@@ -370,7 +370,7 @@ describe('SSS3', () => {
       '*',
       Match.objectLike({
         Export: {
-          Name: `output-${siteName}-bucket-name`,
+          Name: `output-${config.stackName}-${siteName}-bucket-name`,
         },
       }),
     );

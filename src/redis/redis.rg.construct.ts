@@ -10,13 +10,13 @@ import {
   BaseEnvProps,
   resolveEnvProps,
   resolveAndMergeEnvProps,
-  outputExportName,
 } from '../core';
 import { RedisReplicationGroupConstructProps } from './redis.construct.props';
 import {
   redisClusterName,
   redisSubnetGroupName,
 } from './redis.name.conventions';
+import { kebabToPascalCase } from '../util';
 import { CfnOutput, CfnResource, RemovalPolicy } from 'aws-cdk-lib';
 import {
   REDIS_RG_ENVIRONMENTS_PROPS,
@@ -83,8 +83,9 @@ export class RedisReplicationGroup extends BaseConstruct<CfnReplicationGroup> {
     };
 
     const replicationGroupId = redisClusterName(namingProps);
+    const logicalName = kebabToPascalCase(serviceName || 'shared');
 
-    super(scope, 'redis-replication-group', replicationGroupId, config);
+    super(scope, 'redis-replication-group', logicalName, config);
     const resourceProps = this.buildConstructProps({
       config,
       elasticacheProps,
@@ -120,10 +121,7 @@ export class RedisReplicationGroup extends BaseConstruct<CfnReplicationGroup> {
     replicationGroup.addDependency(subnetGroup);
 
     // Replication group hostname
-    const hostExportName = outputExportName({
-      resourceName: this.resourceName,
-      paramType: 'host',
-    });
+    const hostExportName = this.resolver.outputExportName('host');
     new CfnOutput(this, 'ReplicationGroupHost', {
       value: this.resource.attrConfigurationEndPointAddress,
       exportName: hostExportName,
@@ -131,10 +129,7 @@ export class RedisReplicationGroup extends BaseConstruct<CfnReplicationGroup> {
     });
 
     // Replication group port
-    const portExportName = outputExportName({
-      resourceName: this.resourceName,
-      paramType: 'port',
-    });
+    const portExportName = this.resolver.outputExportName('port');
     new CfnOutput(this, 'ReplicationGroupPort', {
       value: this.resource.attrConfigurationEndPointPort,
       exportName: portExportName,

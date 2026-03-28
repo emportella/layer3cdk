@@ -1,9 +1,8 @@
 import { SnsAction } from 'aws-cdk-lib/aws-cloudwatch-actions';
 import { ITopic, Topic } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
-import { BaseConstruct, constructId } from '../../core';
+import { BaseConstruct, ConstructIdResolver } from '../../core';
 import { AlarmSnsActionProps } from '../alarms.construct.props';
-import { alarmTopicName } from '../alarms.name.conventions';
 import { AlarmActionType } from './alarmActions.constants';
 
 /**
@@ -22,18 +21,18 @@ export default class AlarmSnsAction extends BaseConstruct<
 
   constructor(scope: Construct, props: AlarmSnsActionProps) {
     const { config, snsArns } = props;
-    super(
-      scope,
-      'sns-cwaction',
-      alarmTopicName({ env: config.stackEnv, department: config.department }),
-      config,
-    );
+    super(scope, 'sns-cwaction', 'alarm-action', config);
     this.topic = [];
     for (const [key, value] of Object.entries(snsArns)) {
       if (value) {
+        const topicResolver = new ConstructIdResolver({
+          stackName: config.stackName,
+          resourceType: 'sns-cwaction',
+          resourceName: `topic-${key}`,
+        });
         const topic = Topic.fromTopicArn(
           scope,
-          constructId(config.stackName, 'sns-cwaction', `topic-${key}`),
+          topicResolver.constructId,
           value,
         ) as Topic;
         this.topic.push(topic);

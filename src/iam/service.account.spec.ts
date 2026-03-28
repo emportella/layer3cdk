@@ -56,7 +56,7 @@ describe('ServiceAccountRole', () => {
       'sts.amazonaws.com',
     );
     expect(JSON.stringify(captureOIDCUrl.asObject().StringLike)).toContain(
-      'system:serviceaccount:*:rpj-test-app-service-account',
+      'system:serviceaccount:*:banana-launcher-service-account',
     );
     expect(captureOIDCUrl.asObject()).toHaveProperty('StringLike');
   });

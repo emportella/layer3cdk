@@ -8,7 +8,7 @@ import {
 } from 'aws-cdk-lib/aws-cloudwatch';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { FilterOrPolicy, SubscriptionFilter, Topic } from 'aws-cdk-lib/aws-sns';
-import { BaseConfig, constructId } from '../core';
+import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
   EDAStandardQueue,
@@ -38,7 +38,7 @@ describe('EDAStandardQueue', () => {
     });
     standardQueueRef = stack.getLogicalId(
       stack.node.findChild(
-        constructId(config.stackName, 'sqs', standardQueue.resourceName),
+        `${config.stackName}-sqs-${standardQueue.resourceName}`,
       ).node.defaultChild as CfnElement,
     );
     dlqFifo = new DLQFifo(stack, { config });
@@ -53,18 +53,18 @@ describe('EDAStandardQueue', () => {
   });
   it('should create a queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-st-RpjTestApp-TestEventCreated',
+      QueueName: 'dev-st-BananaLauncher-TestEventCreated',
       MessageRetentionPeriod: 1209600,
       VisibilityTimeout: 30,
     });
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-dlq-RpjTestApp',
+      QueueName: 'dev-dlq-BananaLauncher',
       MessageRetentionPeriod: 1209600,
     });
   });
   it('should create a fifo queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-st-RpjTestApp-TestEventCreated.fifo',
+      QueueName: 'dev-st-BananaLauncher-TestEventCreated.fifo',
       MessageRetentionPeriod: 1209600,
       FifoQueue: true,
       ContentBasedDeduplication: true,
@@ -74,7 +74,7 @@ describe('EDAStandardQueue', () => {
     standardQueue.resourceRemovalPolicy(RemovalPolicy.RETAIN);
     Template.fromStack(stack).hasResource('AWS::SQS::Queue', {
       Properties: {
-        QueueName: 'dev-st-RpjTestApp-TestEventCreated',
+        QueueName: 'dev-st-BananaLauncher-TestEventCreated',
       },
       UpdateReplacePolicy: 'Retain',
       DeletionPolicy: 'Retain',
@@ -86,8 +86,7 @@ describe('EDAStandardQueue', () => {
       ActionsEnabled: false,
       AlarmDescription:
         'Alarm if the oldest message in the queue is older than 60 seconds',
-      AlarmName:
-        'dev-st-RpjTestApp-TestEventCreated.fifo Stale Old Message Alarm',
+      AlarmName: 'st-TestEventCreated-fifo Stale Old Message Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateAgeOfOldestMessage',
@@ -100,8 +99,7 @@ describe('EDAStandardQueue', () => {
       ActionsEnabled: false,
       AlarmDescription:
         'Alarm if the number of messages in the queue is greater than 100',
-      AlarmName:
-        'dev-st-RpjTestApp-TestEventCreated.fifo High Number of Messages Alarm',
+      AlarmName: 'st-TestEventCreated-fifo High Number of Messages Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateNumberOfMessagesVisible',
@@ -116,14 +114,13 @@ describe('EDAStandardQueue', () => {
     const topicRef = stack.getLogicalId(topic.node.defaultChild as CfnElement);
     standardQueue.setCloudWatchAlarms(new SnsAction(topic));
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName: 'dev-st-RpjTestApp-TestEventCreated Stale Old Message Alarm',
+      AlarmName: 'st-TestEventCreated Stale Old Message Alarm',
       ActionsEnabled: true,
       AlarmActions: [{ Ref: topicRef }],
       OKActions: [{ Ref: topicRef }],
     });
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName:
-        'dev-st-RpjTestApp-TestEventCreated High Number of Messages Alarm',
+      AlarmName: 'st-TestEventCreated High Number of Messages Alarm',
       ActionsEnabled: true,
       AlarmActions: [{ Ref: topicRef }],
       OKActions: [{ Ref: topicRef }],
@@ -266,7 +263,7 @@ describe('EDAStandardQueue', () => {
     queue.resourceRemovalPolicy(RemovalPolicy.RETAIN);
     Template.fromStack(freshStack).hasResource('AWS::SQS::Queue', {
       Properties: {
-        QueueName: 'dev-st-RpjTestApp-RemovalTest',
+        QueueName: 'dev-st-BananaLauncher-RemovalTest',
       },
       UpdateReplacePolicy: 'Retain',
       DeletionPolicy: 'Retain',
@@ -290,7 +287,7 @@ describe('EDAStandardQueue', () => {
     );
     Template.fromStack(stack).resourceCountIs('AWS::CloudWatch::Alarm', 1);
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
-      AlarmName: 'dev-dlq-RpjTestApp Custom Alarm',
+      AlarmName: 'BananaLauncher Custom Alarm',
       ActionsEnabled: false,
       Threshold: 10,
       EvaluationPeriods: 1,

@@ -26,13 +26,13 @@ describe('DLQ', () => {
   });
   it('should create a queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-dlq-RpjTestApp',
+      QueueName: 'dev-dlq-BananaLauncher',
       MessageRetentionPeriod: 1209600,
     });
   });
   it('should create a fifo queue with the correct name and default settings', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::SQS::Queue', {
-      QueueName: 'dev-dlq-RpjTestApp.fifo',
+      QueueName: 'dev-dlq-BananaLauncher.fifo',
       MessageRetentionPeriod: 1209600,
       FifoQueue: true,
       ContentBasedDeduplication: true,
@@ -58,8 +58,8 @@ describe('DLQ', () => {
     Template.fromStack(stack).hasResourceProperties('AWS::CloudWatch::Alarm', {
       ActionsEnabled: false,
       AlarmDescription:
-        'Alarm if any message is in the dead letter queue for dev-dlq-RpjTestApp',
-      AlarmName: 'dev-dlq-RpjTestApp Dead Letter Queue Alarm',
+        'Alarm if any message is in the dead letter queue for BananaLauncher',
+      AlarmName: 'BananaLauncher Dead Letter Queue Alarm',
       ComparisonOperator: 'GreaterThanOrEqualToThreshold',
       EvaluationPeriods: 2,
       MetricName: 'ApproximateNumberOfMessagesVisible',
