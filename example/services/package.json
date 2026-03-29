@@ -1,0 +1,41 @@
+{
+  "name": "taco-shop-cdk",
+  "version": "1.0.0",
+  "description": "CDK repository for Taco Shop domain",
+  "author": "Layer3 Inc.",
+  "private": true,
+  "bin": {
+    "taco_shop_cdk": "bin/main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier \"bin/**/*.ts\"",
+    "format:check": "npm run format -- --check",
+    "format:write": "npm run format -- --write",
+    "watch": "tsc -w",
+    "test": "jest",
+    "test:cov": "jest --coverage",
+    "cdk": "cdk",
+    "lint": "eslint \"bin/**/*.ts\"",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^20.19.37",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "jest": "^30.3.0",
+    "prettier": "^3.8.1",
+    "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.100.0",
+    "constructs": "^10.0.0",
+    "layer3cdk": "file:../../"
+  }
+}
