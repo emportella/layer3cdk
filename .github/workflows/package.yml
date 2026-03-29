@@ -20,6 +20,7 @@ jobs:
           node-version-file: '.nvmrc'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
+      - run: npm run build
       - run: npm run format:check
       - run: npm run lint
       - run: npm run test:cov

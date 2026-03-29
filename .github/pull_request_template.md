@@ -1,13 +1,20 @@
 ### Description
 
-Please include a summary of the code change and any hard/soft dependencies on other parts of our system.
+Summary of the change and which constructs are affected.
 
-### Breaking Changes (Remove if not needed)
+### Breaking Changes
 
-A description of any breaking changes & links to documentation. (Remove if not needed)
+A description of any breaking changes to the public API. Remove this section if not applicable.
+
+### Testing
+
+- [ ] Unit tests added/updated
+- [ ] `npm run test:cov` passes with coverage thresholds met
+- [ ] `npm run build` compiles without errors
+- [ ] Example project (`example/services/`) updated if new constructs are added
 
 ### Dependencies
 
-CDK project and PR where these changes were implemented and tested.
+Consumer CDK project and PR where these changes were validated (if applicable).
 
-* Project Name: `<project-name>-cdk` - link to PR
+* Project: `<project-name>-cdk` — link to PR

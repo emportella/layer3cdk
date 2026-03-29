@@ -57,6 +57,9 @@ export type ResourceType =
   | 'ssm-str-param'
   | 'ecr'
   | 'ecr-app'
+  | 'ecs-cluster'
+  | 'ecs-service'
+  | 'ecs-task-def'
   | 'lambda'
   | 'redis-replication-group'
   | 's3-static-site';
