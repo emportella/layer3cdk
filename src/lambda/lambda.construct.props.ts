@@ -107,7 +107,7 @@ export interface LambdaFunctionProps extends BaseConstructProps {
    * }
    * ```
    */
-  lambdaConfig?: BaseEnvProps<LambdaConfig>;
+  lambdaConfig?: BaseEnvProps<Partial<LambdaConfig>>;
 
   /**
    * Optional raw CDK `FunctionProps` overrides.

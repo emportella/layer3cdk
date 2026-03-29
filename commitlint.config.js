@@ -24,5 +24,6 @@ module.exports = {
   ],
   rules: {
     'branch-prefix': [2, 'always'],
+    'subject-case': [0],
   },
 };

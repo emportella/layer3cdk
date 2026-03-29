@@ -97,7 +97,7 @@ export interface NodejsLambdaFunctionProps extends BaseConstructProps {
    * }
    * ```
    */
-  lambdaConfig?: BaseEnvProps<LambdaConfig>;
+  lambdaConfig?: BaseEnvProps<Partial<LambdaConfig>>;
 
   /**
    * Optional raw CDK `NodejsFunctionProps` overrides.

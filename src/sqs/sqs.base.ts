@@ -125,6 +125,22 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
     return this.resource.queueArn;
   }
 
+  /**
+   * Returns the underlying CDK `Queue` for use with event sources,
+   * Lambda triggers, or other integrations not covered by the Layer3CDK API.
+   *
+   * @example
+   * ```typescript
+   * import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+   *
+   * const queue = new EDAStandardQueue(stack, { config, eventName: 'OrderCreated', dlq: dlq.getDlq() });
+   * lambdaFn.getFunction().addEventSource(new SqsEventSource(queue.getQueue()));
+   * ```
+   */
+  public getQueue(): Queue {
+    return this.resource;
+  }
+
   protected outputArn(): void {
     const exportName = this.resolver.arnExportName();
     new CfnOutput(this, exportName + '-id', {

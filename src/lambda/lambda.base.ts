@@ -5,7 +5,7 @@ import {
   Stats,
   TreatMissingData,
 } from 'aws-cdk-lib/aws-cloudwatch';
-import { IFunction } from 'aws-cdk-lib/aws-lambda';
+import { IEventSource, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { BaseConstruct } from '../core/base.construct';
@@ -206,8 +206,37 @@ export abstract class LambdaBase extends BaseConstruct<IFunction> {
   }
 
   /**
+   * Connects one or more event sources to this Lambda function.
+   *
+   * Event sources automatically trigger the Lambda when events arrive.
+   * CDK handles the required IAM permissions for most event source types.
+   *
+   * @param sources - One or more event sources (SQS, SNS, DynamoDB Streams, Kinesis, etc.).
+   *
+   * @example
+   * ```typescript
+   * import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+   * import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+   *
+   * // SQS → Lambda
+   * lambdaFn.addEventSources(new SqsEventSource(queue.getQueue()));
+   *
+   * // Multiple sources at once
+   * lambdaFn.addEventSources(
+   *   new SqsEventSource(queue.getQueue(), { batchSize: 10 }),
+   *   new DynamoEventSource(table.getTable(), { startingPosition: StartingPosition.LATEST }),
+   * );
+   * ```
+   */
+  public addEventSources(...sources: IEventSource[]): void {
+    for (const source of sources) {
+      this.resource.addEventSource(source);
+    }
+  }
+
+  /**
    * Returns the underlying CDK `IFunction` for advanced use cases
-   * not covered by the Layer3CDK API (e.g. event source mappings, layers, VPC config).
+   * not covered by the Layer3CDK API (e.g. layers, VPC config).
    */
   public getFunction(): IFunction {
     return this.resource;

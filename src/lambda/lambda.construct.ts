@@ -1,7 +1,7 @@
 import { Function as LambdaFn, FunctionProps } from 'aws-cdk-lib/aws-lambda';
 import { LogGroup } from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
-import { resolveAndMergeEnvProps } from '../core/base.construct.env.props';
+import { resolveEnvProps } from '../core/base.construct.env.props';
 import { LambdaFunctionProps } from './lambda.construct.props';
 import { lambdaFunctionName } from './lambda.name.conventions';
 import { LambdaBase } from './lambda.base';
@@ -92,11 +92,9 @@ export class LambdaFunction extends LambdaBase {
 
     super(scope, functionName, config, name);
 
-    const resolvedConfig = resolveAndMergeEnvProps(
-      LAMBDA_ENVIRONMENTS_PROPS,
-      config,
-      lambdaConfig,
-    );
+    const base = resolveEnvProps(LAMBDA_ENVIRONMENTS_PROPS, config);
+    const overrides = lambdaConfig ? resolveEnvProps(lambdaConfig, config) : {};
+    const resolvedConfig = { ...base, ...overrides };
 
     this.alarmThresholds = resolvedConfig;
 
