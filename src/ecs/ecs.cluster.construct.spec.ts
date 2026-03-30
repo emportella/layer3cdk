@@ -49,7 +49,7 @@ describe('EcsCluster', () => {
         ClusterSettings: Match.arrayWith([
           Match.objectLike({
             Name: 'containerInsights',
-            Value: 'enabled',
+            Value: 'enhanced',
           }),
         ]),
       },

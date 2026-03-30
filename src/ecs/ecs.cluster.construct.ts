@@ -1,5 +1,5 @@
 import { CfnOutput } from 'aws-cdk-lib';
-import { Cluster, ICluster } from 'aws-cdk-lib/aws-ecs';
+import { Cluster, ContainerInsights, ICluster } from 'aws-cdk-lib/aws-ecs';
 import { Construct } from 'constructs';
 import { BaseConstruct } from '../core/base.construct';
 import { EcsClusterProps } from './ecs.construct.props';
@@ -57,7 +57,9 @@ export class EcsCluster extends BaseConstruct<Cluster> {
     this.resource = new Cluster(this, this.resolver.childId('ecs-cluster'), {
       clusterName: name,
       vpc,
-      containerInsights: containerInsights ?? false,
+      containerInsightsV2: containerInsights
+        ? ContainerInsights.ENHANCED
+        : ContainerInsights.DISABLED,
       defaultCloudMapNamespace: defaultCloudMapNamespace
         ? { name: defaultCloudMapNamespace }
         : undefined,

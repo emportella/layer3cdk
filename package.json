@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "prebuild": "rm -rf dist",
+    "prebuild": "rm -rf dist coverage",
     "prepare": "husky && npm run build",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
@@ -44,7 +44,7 @@
     "@typescript-eslint/eslint-plugin": "^8.57.2",
     "@typescript-eslint/parser": "^8.57.2",
     "esbuild": "^0.27.4",
-    "eslint": "^9.39.4",
+    "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
     "husky": "^9.1.7",
@@ -54,7 +54,7 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "aws-cdk-lib": "^2.100.0",
-    "constructs": "^10.0.0"
+    "aws-cdk-lib": "^2.245.0",
+    "constructs": "^10.6.0"
   }
 }

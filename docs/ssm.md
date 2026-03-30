@@ -2,40 +2,55 @@
 
 All SSM-related constructs should be built into this package.
 
-### 1. SSM Parameter string
+SSM parameter names follow the convention `/<env>/<context>/<parameter-name>` where context depends on the scope level:
 
-The [GlobalSSMStringParameter](./ssm.string.parameter.construct.ts) is used to create a parameter and value pair in the SSM parameter store. The constructor handles all the naming and configurations needed for the role. This constructor specifically adds the word global context to the name i.e. parameter name would be `/env/global/paramName``.
+| Construct | Context | Example |
+|-----------|---------|---------|
+| `GlobalSSMStringParameter` | `global` | `/dev/global/api-base-url` |
+| `DepartmentSSMStringParameter` | `<department>` | `/dev/pltf/notification-sender-email` |
+| `ServiceSSMStringParameter` | `<service-name>` | `/dev/taco-processor/max-concurrent-orders` |
+
+### 1. GlobalSSMStringParameter
+
+Creates a parameter scoped globally — shared across all services and departments within an environment.
 
 ```typescript
 import { GlobalSSMStringParameter } from 'layer3cdk';
 
-const ssmStringParameter = new GlobalSSMStringParameter(scope, {
+new GlobalSSMStringParameter(scope, {
   config,
-  parameterName,
-  parameterValue,
-}); //that's it.
+  parameterName: 'api-base-url',
+  parameterValue: 'https://api.taco-shop.example.com',
+});
+// → /dev/global/api-base-url
 ```
 
-The [DomainSSMStringParameter](./ssm.string.parameter.construct.ts) is used to create a parameter and value pair in the SSM parameter store. The constructor handles all the naming and configurations needed for the role. This constructor specifically adds the domain name to the name i.e. parameter name would be `/env/rpj/paramName` or `/env/mob/paramName`.
+### 2. DepartmentSSMStringParameter
+
+Creates a parameter scoped to the department — shared across all services within a department.
 
 ```typescript
-import { DomainSSMStringParameter } from 'layer3cdk';
+import { DepartmentSSMStringParameter } from 'layer3cdk';
 
-const ssmStringParameter = new DomainSSMStringParameter(scope, {
+new DepartmentSSMStringParameter(scope, {
   config,
-  parameterName,
-  parameterValue,
-}); //that's it.
+  parameterName: 'notification-sender-email',
+  parameterValue: 'noreply@taco-shop.example.com',
+});
+// → /dev/pltf/notification-sender-email
 ```
 
-The [ServiceSSMStringParameter](./ssm.string.parameter.construct.ts) is used to create a parameter and value pair in the SSM parameter store. The constructor handles all the naming and configurations needed for the role. This constructor specifically adds the service name to the name i.e. parameter name would be `/env/rp-agency/paramName` or `/env/rp-tasks/paramName`.
+### 3. ServiceSSMStringParameter
+
+Creates a parameter scoped to a specific service — only that service should read it.
 
 ```typescript
 import { ServiceSSMStringParameter } from 'layer3cdk';
 
-const ssmStringParameter = new ServiceSSMStringParameter(scope, {
+new ServiceSSMStringParameter(scope, {
   config,
-  parameterName,
-  parameterValue,
-}); //that's it.
+  parameterName: 'max-concurrent-orders',
+  parameterValue: '100',
+});
+// → /dev/taco-processor/max-concurrent-orders
 ```

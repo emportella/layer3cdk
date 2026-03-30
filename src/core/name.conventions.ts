@@ -59,7 +59,7 @@ export const constructId = <
  * @param resourceName
  * @param alarmType
  * @returns `${stackName}-cw-alarm-${resourceName}-${AlarmType}`
- * @example dev-rp-tasks-cw-alarm-dev-st-RpTasks-ApplicationEventCreated-old-messages
+ * @example dev-TacoProcessor-cw-alarm-st-OrderCreated-old-messages
  */
 export const alarmConstructId = <
   T extends string,

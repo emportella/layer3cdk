@@ -20,7 +20,7 @@ First release of Layer3CDK.
 - SNS constructs: `EDASns`, `EDASnsFifo`.
 - DynamoDB construct: `DynamoTable` with built-in CloudWatch alarms and production validations.
 - Redis construct: `RedisReplicationGroup` with enforced encryption and automatic subnet group creation.
-- SSM constructs: `GlobalSSMStringParameter`, `DomainSSMStringParameter`, `ServiceSSMStringParameter`.
+- SSM constructs: `GlobalSSMStringParameter`, `DepartmentSSMStringParameter`, `ServiceSSMStringParameter`.
 - Secrets construct: `GlobalSecrets`.
 - ECR construct: `ApplicationRepository` with environment-aware repository creation.
 - IAM construct: `ServiceAccountRole` with EKS OIDC federation.

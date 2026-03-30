@@ -30,7 +30,8 @@ type ExcludeProps =
   | 'transitEncryptionEnabled'
   | 'transitEncryptionMode'
   | 'ipDiscovery'
-  | 'cacheSubnetGroupName';
+  | 'cacheSubnetGroupName'
+  | 'cacheSecurityGroupNames';
 
 export type RedisReplicationGroupProps = Omit<
   CfnReplicationGroupProps,
@@ -92,20 +93,20 @@ export class RedisReplicationGroup extends BaseConstruct<CfnReplicationGroup> {
       elasticacheConfig,
     });
 
-    const { subnets, subnetGroupDescription } = resourceProps;
+    const { subnets, subnetGroupDescription, ...restProps } = resourceProps;
 
     const subnetGroup = new CfnSubnetGroup(this, 'RedisSubnetGroup', {
       subnetIds: subnets.map(({ id }) => id),
       cacheSubnetGroupName: redisSubnetGroupName(namingProps),
       description: subnetGroupDescription || 'Elasticache Subnet Group',
-      tags: Object.entries(tags).map(([key, value]) => ({ key, value })), // for some reason not set automatically
+      tags: Object.entries(tags).map(([key, value]) => ({ key, value })),
     });
 
     const replicationGroup = new CfnReplicationGroup(
       this,
       'RedisReplicationGroup',
       {
-        ...resourceProps,
+        ...restProps,
         // parameters that cannot be controlled by construct's consumer
         replicationGroupId,
         engine: 'redis',

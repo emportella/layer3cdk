@@ -9,7 +9,7 @@ import { SsmParameterNameProps } from './ssm.construct.props';
  * @param props.contextLevel - global, department, service
  * @param props.env - environment
  * @returns `/${env}/${contextValue[contextLevel]}/${parameterName}`
- * @example `/dev/rpagency/sample`
+ * @example `/dev/global/api-base-url`, `/dev/pltf/notification-sender-email`, `/dev/taco-processor/max-concurrent-orders`
  */
 export const ssmParameterName = (props: SsmParameterNameProps): string => {
   const { parameterName, serviceName, department, contextLevel, env } = props;

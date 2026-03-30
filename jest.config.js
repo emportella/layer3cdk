@@ -8,7 +8,7 @@ module.exports = {
   },
   testEnvironment: 'node',
   collectCoverageFrom: ['**/*.(t|j)s'],
-  coveragePathIgnorePatterns: ['index.ts'],
+  coveragePathIgnorePatterns: ['index.ts', 'test/fixtures/'],
   coverageDirectory: '../coverage',
   coverageThreshold: {
     global: {

@@ -6,18 +6,17 @@
 
 **Production-ready AWS CDK L3 constructs that eliminate boilerplate and enforce best practices.**
 
-Layer3CDK sits on top of [AWS CDK](https://aws.amazon.com/cdk/) and provides high-level, opinionated constructs for the services teams use every day -- SQS, SNS, DynamoDB, ElastiCache Redis, ECR, SSM, Secrets Manager, IAM, and CloudWatch Alarms. Instead of wiring up 50+ lines of CDK per resource, you write one construct call with a props object and get consistent naming, tagging, alarms, IAM grants, and environment-aware configuration out of the box.
+Layer3CDK sits on top of [AWS CDK](https://aws.amazon.com/cdk/) and provides high-level, opinionated constructs for the services teams use every day -- SQS, SNS, DynamoDB, ElastiCache Redis, ECR, Lambda, ECS Fargate, SSM, Secrets Manager, S3 static sites, IAM, and CloudWatch Alarms. Instead of wiring up 50+ lines of CDK per resource, you write one construct call with a props object and get consistent naming, tagging, alarms, IAM grants, and environment-aware configuration out of the box.
 
 ```typescript
-import { BaseConfig, DynamoTable, EDAStandardQueue, DLQ, EDASns } from 'layer3cdk';
+import { BaseStackConfig, DynamoTable, EDAStandardQueue, DLQ, EDASns, NodejsLambdaFunction } from 'layer3cdk';
 
-const config = new BaseConfig({
-  domain: 'rpj',
-  env: { account: '123456789012', region: 'us-east-1' },
-  stackName: 'rpj-tasks',
-  tags: { /* ... */ },
-  stackEnv: 'prod',
-  serviceName: 'rp-tasks',
+// Centralized config from cdk.json context
+const stackConfig = BaseStackConfig.getInstance(app);
+const config = stackConfig.createBaseConfig({
+  serviceName: 'taco-processor',
+  stackName: 'taco-processor',
+  tags: { 'Eng:Application': 'taco-processor' },
 });
 
 // DynamoDB table with production guardrails and alarms
@@ -29,14 +28,17 @@ const table = new DynamoTable(this, {
 
 // Dead-letter queue + event queue with alarms
 const dlq = new DLQ(this, config);
-const queue = new EDAStandardQueue(this, {
-  config,
-  eventName: 'OrderCreated',
-  dlq: dlq.getDlq(),
-});
+const queue = new EDAStandardQueue(this, { config, eventName: 'OrderCreated', dlq: dlq.getDlq() });
 
 // SNS topic
 const topic = new EDASns(this, { config, eventName: 'OrderCreated' });
+
+// Lambda with esbuild bundling
+const fn = new NodejsLambdaFunction(this, {
+  config,
+  functionName: 'process-order',
+  entry: path.join(__dirname, 'handlers/process-order.ts'),
+});
 ```
 
 ---
@@ -49,8 +51,9 @@ const topic = new EDASns(this, { config, eventName: 'OrderCreated' });
 | Alarms are forgotten or inconsistent | Built-in CloudWatch alarms with sensible defaults |
 | Dev/prod configs drift apart | `BaseEnvProps<T>` lets you declare per-environment overrides with a required `default` fallback |
 | Constructors with 5+ positional params are error-prone | Every construct uses a single **props object** with full IDE autocomplete |
-| IAM policies are too broad or too narrow | Typed grant methods (`grantPolicies`, `grantReadOnlyPolicies`, `grantCustomPolicies`) |
+| IAM policies are too broad or too narrow | Typed grant methods (`grantPolicies`, `addPermissions`, `grantReadOnlyPolicies`) |
 | Production resources lack safeguards | Automatic validation (e.g., DynamoDB deletion protection and PITR in prod) |
+| Tags are inconsistent across stacks | `DEFAULT_TAGS` with auto-set `Eng:Env` and `Eng:ManagedBy` |
 
 ---
 
@@ -59,7 +62,7 @@ const topic = new EDASns(this, { config, eventName: 'OrderCreated' });
 ### Prerequisites
 
 - Node.js >= 20
-- AWS CDK v2 (`aws-cdk-lib` ^2.100.0)
+- AWS CDK v2 (`aws-cdk-lib` ^2.245.0)
 
 ### Installation
 
@@ -69,33 +72,42 @@ npm install layer3cdk
 
 > `aws-cdk-lib` and `constructs` are **peer dependencies** -- install them separately if you haven't already.
 
+### Configuration
+
+Add the `layer3cdk` context to your `cdk.json` for centralized team and department config:
+
+```json
+{
+  "context": {
+    "layer3cdk": {
+      "team": "Layer3",
+      "department": "pltf"
+    }
+  }
+}
+```
+
+This is picked up by `BaseStackConfig.getInstance(app)` and flows into every `createBaseConfig()` call.
+
 ### Your First Stack
 
 ```typescript
-import { Stack, App } from 'aws-cdk-lib';
-import { BaseConfig, DLQ, EDAStandardQueue, EDASns, ServiceAccountRole } from 'layer3cdk';
+import { App } from 'aws-cdk-lib';
+import { BaseStackConfig, BaseStack, DLQ, EDAStandardQueue, EDASns, ServiceAccountRole } from 'layer3cdk';
 
 const app = new App();
-const stack = new Stack(app, 'MyServiceStack');
+const stackConfig = BaseStackConfig.getInstance(app);
 
-const config = new BaseConfig({
-  domain: 'rpj',
-  env: { account: '123456789012', region: 'us-east-1' },
-  stackName: 'rpj-my-service',
-  tags: {
-    'TagSchemaVersion': '0.1',
-    'Eng:Env': 'dev',
-    'Ownership:Department': 'productDevelopment',
-    'Ownership:Team': 'myTeam',
-  },
-  stackEnv: 'dev',
+const config = stackConfig.createBaseConfig({
   serviceName: 'my-service',
+  stackName: 'my-service',
+  tags: { 'Eng:Application': 'my-service' },
 });
 
 // IAM role for your Kubernetes service account
 const serviceAccount = new ServiceAccountRole(stack, {
   config,
-  oidcProviderArns: { dev: 'arn:aws:iam::oidc-provider/...', /* ... */ },
+  oidcProviderArns: { dev: 'arn:aws:iam::oidc-provider/...', stg: '...', prd: '...' },
 });
 
 // Dead-letter queue
@@ -128,9 +140,11 @@ queue.grantPolicies(serviceAccount.getRole());
 | **DynamoDB** | `DynamoTable` | Tables with capacity alarms, throttle detection, and prod validation |
 | **Redis** | `RedisReplicationGroup` | ElastiCache with enforced encryption and subnet management |
 | **ECR** | `ApplicationRepository` | Environment-aware container repositories |
+| **Lambda** | `LambdaFunction`, `NodejsLambdaFunction` | Lambda with env defaults, alarms (errors/duration/throttles), and `addPermissions()`. `NodejsLambdaFunction` adds automatic esbuild bundling for TypeScript |
+| **ECS** | `EcsCluster`, `EcsFargateService` | Fargate services with env defaults, alarms (CPU/memory/task count), auto-scaling, Cloud Map service discovery |
 | **IAM** | `ServiceAccountRole` | EKS OIDC-federated service account roles |
-| **SSM** | `GlobalSSMStringParameter`, `DomainSSMStringParameter`, `ServiceSSMStringParameter` | Scoped parameter store entries (global, domain, service) |
-| **Secrets** | `GlobalSecrets` | Secrets Manager secrets with IAM grants |
+| **SSM** | `GlobalSSMStringParameter`, `DepartmentSSMStringParameter`, `ServiceSSMStringParameter` | Scoped parameter store entries (global, department, service) |
+| **Secrets** | `GlobalSecrets` | Secrets Manager secrets |
 | **Static Site S3** | `SSS3` | S3 + CloudFront + ACM + Route 53 + optional WAF + API proxying for static sites and SPAs |
 | **Alarms** | `ChatbotSlackChannnel`, `OpsGenie`, `AlarmSnsAction` | Alarm routing to Slack, OpsGenie, or any SNS topic |
 | **Config** | `EksClusterConfig` | EKS cluster OIDC and namespace configuration |
@@ -141,13 +155,9 @@ queue.grantPolicies(serviceAccount.getRole());
 
 ### Props-Based API
 
-Every construct takes `(scope, props)` where `props` is a typed interface extending `BaseConstructProps`. This gives you full IDE autocomplete -- type `{` and see every available option:
+Every construct takes `(scope, props)` where `props` is a typed interface extending `BaseConstructProps`. This gives you full IDE autocomplete:
 
 ```typescript
-// All props interfaces are exported from the package
-import { EDAQueueProps } from 'layer3cdk';
-
-// EDAQueueProps extends BaseConstructProps, which carries `config`
 const queue = new EDAStandardQueue(this, {
   config,          // BaseConfig -- required by all constructs
   eventName: 'OrderCreated',
@@ -156,22 +166,14 @@ const queue = new EDAStandardQueue(this, {
 });
 ```
 
-Props interfaces live in dedicated `*.construct.props.ts` files, one per module -- all flat-exported from the package.
-
 ### Environment-Aware Configuration
 
 Define different settings per environment using `BaseEnvProps<T>`. Only override what differs -- `default` is always the fallback:
 
 ```typescript
-import { BaseEnvProps } from 'layer3cdk';
-import { DynamoConfig } from 'layer3cdk';
-
 const dynamoConfig: BaseEnvProps<DynamoConfig> = {
-  default: {
-    alarmReadThreshold: 20,
-    alarmWriteThreshold: 20,
-  },
-  prod: {
+  default: { alarmReadThreshold: 20, alarmWriteThreshold: 20 },
+  prd: {
     billing: Billing.onDemand(),
     alarmReadThreshold: 100,
     alarmWriteThreshold: 100,
@@ -181,42 +183,85 @@ const dynamoConfig: BaseEnvProps<DynamoConfig> = {
 };
 ```
 
-The library resolves the right config for the current environment using `resolveEnvProps()`, `resolveWithOverrides()`, and `resolveAndMergeEnvProps()`. Modules like DynamoDB and Redis ship their own `BaseEnvProps` defaults that your overrides are deep-merged on top of.
+Lambda and ECS accept `BaseEnvProps<Partial<Config>>` so you only specify the fields you want to change:
+
+```typescript
+new NodejsLambdaFunction(this, {
+  config,
+  functionName: 'process-order',
+  entry: path.join(__dirname, 'handlers/process-order.ts'),
+  lambdaConfig: {
+    default: { memorySize: 512 },
+    prd: { memorySize: 1024 },
+  },
+});
+```
+
+### Tags
+
+Tags use PascalCase colon-namespaced convention. Default tag keys are shipped via `DEFAULT_TAGS`:
+
+| Tag | Auto-set | Description |
+|-----|----------|-------------|
+| `Eng:Env` | Yes | From `stackEnv`, always wins |
+| `Eng:ManagedBy` | Yes | Always `'cdk'` |
+| `Ownership:Department` | No | Business unit |
+| `Ownership:Organization` | No | Org domain |
+| `Ownership:Team` | No | Team name |
+| `Eng:Application` | No | Application name |
+| `Eng:Repository` | No | Source repo |
+
+Users can extend (add keys) or override (strip all defaults) via the `tags` section in `layer3cdk` context:
+
+```json
+{ "tags": { "mode": "extend", "values": { "Ownership:CostCenter": "CC-1234" } } }
+```
 
 ### Standardized Naming
 
-All resources follow predictable naming conventions derived from `config.stackEnv`, `config.serviceName`, and resource-specific identifiers:
+All resources follow predictable naming conventions:
 
 ```
-Queue:  dev-st-RpTasks-OrderCreated
-Topic:  dev-OrderCreated
-Table:  dev-RpTasks-Orders
-DLQ:    dev-dlq-RpTasks
-Role:   rp-tasks-eks-service-account-dev
+Queue:      dev-st-TacoProcessor-OrderCreated
+DLQ:        dev-dlq-TacoProcessor
+Topic:      dev-OrderCreated
+Table:      dev-TacoProcessor-Orders
+Lambda:     dev-TacoProcessor-ProcessOrder
+LogGroup:   /aws/lambda/dev-TacoProcessor-ProcessOrder
+ECS Svc:    dev-NachoAgency-IngredientApi
+ECS Logs:   /ecs/dev-NachoAgency-IngredientApi
+Redis:      dev-pltf-TacoProcessor
+SSM:        /dev/global/api-base-url
+S3:         dev-churro-dashboard-churro-dashboard-assets
+Role:       my-service-eks-service-account-dev
 ```
-
-No more naming collisions or inconsistencies across teams.
 
 ### Built-In Alarms
 
 Constructs ship with CloudWatch alarms that reflect real operational concerns:
 
-- **SQS** -- stale messages, queue depth
-- **SNS** -- notification failures
-- **DynamoDB** -- consumed read/write capacity, throttled requests
-- **DLQ** -- any message landing in the dead-letter queue
+| Construct | Alarms |
+|-----------|--------|
+| **SQS** | Stale messages, queue depth |
+| **SNS** | Notification failures |
+| **DynamoDB** | Consumed read/write capacity, throttled requests |
+| **DLQ** | Any message landing in the dead-letter queue |
+| **Lambda** | Errors, duration, throttles |
+| **ECS Fargate** | CPU utilization, memory utilization, running task count |
 
 Pass an alarm action (Slack, OpsGenie, or any SNS action) to wire notifications:
 
 ```typescript
 queue.setCloudWatchAlarms(alarmAction);
 table.setCloudWatchAlarms(alarmAction);
+lambdaFn.setCloudWatchAlarms(alarmAction);
+ecsService.setCloudWatchAlarms(alarmAction);
 ```
 
 You can also define fully custom alarms on any construct:
 
 ```typescript
-queue.setCustomAlarms(
+dlq.setCustomAlarms(
   (resource, resourceName) => ({
     metric: resource.metricApproximateNumberOfMessagesVisible({ period: Duration.minutes(1) }),
     threshold: 500,
@@ -238,17 +283,35 @@ Detailed guides for each module:
 
 | Document | Topics |
 |---|---|
-| [Core](./docs/core.md) | `BaseConstruct`, `BaseConfig`, `BaseEnvProps`, naming conventions, environment resolution |
+| [Core](./docs/core.md) | `BaseConstruct`, `BaseConfig`, `BaseStackConfig`, `BaseEnvProps`, naming, environment resolution, tags |
 | [SQS](./docs/sqs.md) | Dead-letter queues, standard/background/fan-in queues, FIFO variants, subscriptions |
 | [SNS](./docs/sns.md) | Event topics, FIFO topics |
 | [DynamoDB](./docs/dynamo.md) | Table configuration, `DynamoProps` vs `DynamoConfig`, production validations |
 | [Redis](./docs/redis.md) | Replication groups, encryption, subnet management |
 | [ECR](./docs/ecr.md) | Application repositories, environment-aware creation |
+| [Lambda](./docs/lambda.md) | `LambdaFunction` vs `NodejsLambdaFunction`, code callback pattern, esbuild bundling, alarms |
+| [ECS Fargate](./docs/ecs.md) | Cluster, Fargate services, auto-scaling, Cloud Map, task/execution roles, multi-service patterns |
 | [IAM](./docs/iam.md) | Service account roles, EKS OIDC federation |
-| [SSM](./docs/ssm.md) | Global, domain, and service-scoped parameters |
+| [SSM](./docs/ssm.md) | Global, department, and service-scoped parameters |
+| [Secrets](./docs/secrets.md) | Secrets Manager secrets |
 | [Static Site S3](./docs/static-site-s3.md) | S3 + CloudFront + ACM + Route 53, SPA support, API proxying, WAF integration |
 | [Alarms](./docs/alarms.md) | Slack (Chatbot), OpsGenie, SNS action imports |
 | [Config](./docs/config.md) | EKS cluster configuration |
+
+---
+
+## Example Project
+
+The [`example/services/`](./example/services/) directory contains a full reference implementation demonstrating every construct in the library. It models a "Taco Shop" domain with 6 stacks:
+
+- **TacoAlarmHub** — Chatbot + OpsGenie + AlarmSnsAction
+- **TacoProcessor** — DynamoDB, Redis, SQS (standard + background tasks), Lambda (NodejsFunction), SSM, Secrets, ECR
+- **NachoAgency** — ECS Fargate (cluster + 2 services with Cloud Map), SNS (standard + FIFO), ECR
+- **SalsaNotifier** — SQS (standard + FIFO + fan-in), DLQFifo, SSM (department), ECR
+- **GuacWarehouse** — Lambda (generic with Code.fromAsset), SQS with S3 event policy, SNS, ECR
+- **ChurroDashboard** — SSS3 (S3 + CloudFront + ACM + Route 53)
+
+See the [example README](./example/services/README.md) for the full resource breakdown with verified CloudFormation resource names from `cdk synth`.
 
 ---
 
@@ -256,12 +319,14 @@ Detailed guides for each module:
 
 ```
 src/
-  core/                          # Foundation: BaseConstruct, BaseConfig, naming, env resolution
+  core/                          # Foundation: BaseConstruct, BaseConfig, BaseStackConfig, naming, env resolution, tags
   sqs/                           # SQS constructs (DLQ, Standard, BackgroundTasks, Fanin)
   sns/                           # SNS constructs (EDASns, EDASnsFifo)
   dynamo/                        # DynamoDB construct
   redis/                         # ElastiCache Redis construct
   ecr/                           # ECR repository construct
+  lambda/                        # Lambda constructs (LambdaFunction, NodejsLambdaFunction)
+  ecs/                           # ECS constructs (EcsCluster, EcsFargateService)
   iam/                           # IAM service account role construct
   ssm/                           # SSM parameter constructs
   secrets/                       # Secrets Manager construct
@@ -269,7 +334,8 @@ src/
   config/                        # EKS cluster configuration
   static-site-s3/                # SSS3: S3 + CloudFront + ACM + Route 53 + WAF
   index.ts                       # Flat re-exports everything
-docs/                            # Detailed module documentation
+example/
+  services/                      # Full reference implementation (Taco Shop)
 ```
 
 Each module follows a consistent file pattern:
@@ -290,7 +356,7 @@ index.ts                         # Barrel exports
 ```bash
 npm install          # Install dependencies
 npm run build        # TypeScript compilation (tsc -> dist/)
-npm run test         # Run tests
+npm run test         # Run tests (314 tests across 38 suites)
 npm run test:cov     # Run tests with coverage (thresholds: 75/75/60/75)
 npm run lint         # ESLint check
 npm run lint:fix     # ESLint + Prettier auto-fix
@@ -308,17 +374,12 @@ refactor: simplify BaseEnvProps resolution
 
 ## Contributing
 
-1. Fork the repository
+1. Clone the repository
 2. Create a feature branch (`git checkout -b feat/my-feature`)
 3. Write your construct following the [module pattern](#project-structure)
 4. Add tests (coverage thresholds: 75% statements, 75% branches, 60% functions, 75% lines)
-5. Submit a pull request
-
-Check the [Contributing Guide](./CONTRIBUTING.md) for more details.
-
-## Change Log
-
-See [CHANGELOG.md](./CHANGELOG.md).
+5. Update the example project (`example/services/`) if adding new constructs
+6. Submit a pull request
 
 ## License
 

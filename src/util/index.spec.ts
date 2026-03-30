@@ -13,16 +13,16 @@ describe('util', () => {
   });
   describe('kebabToPascalCase', () => {
     it('should turn kebab case string to pascal case', () => {
-      expect(kebabToPascalCase('rp-agency')).toEqual('RpAgency');
+      expect(kebabToPascalCase('taco-launcher')).toEqual('TacoLauncher');
     });
     it('should do nothing if it is already pascal cases', () => {
-      expect(kebabToPascalCase('RpAgency')).toEqual('RpAgency');
+      expect(kebabToPascalCase('TacoLauncher')).toEqual('TacoLauncher');
     });
   });
   describe('util', () => {
     describe('pascalCaseToKebabCase', () => {
       it('should turn pascal case string to kebab case', () => {
-        expect(pascalCaseToKebabCase('RpAgency')).toEqual('rp-agency');
+        expect(pascalCaseToKebabCase('TacoLauncher')).toEqual('taco-launcher');
       });
     });
   });

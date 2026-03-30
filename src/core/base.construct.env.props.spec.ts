@@ -29,12 +29,12 @@ describe('resolveEnvProps', () => {
 
   it('should fall back to default when env not present', () => {
     const stgConfig = new BaseConfig({
-      department: 'rpj',
+      department: 'pltf',
       env: { account: '123456789012', region: 'us-east-1' },
-      stackName: 'rpj-test-stack',
+      stackName: 'pltf-banana-stack',
       tags: testconfig.tags,
       stackEnv: 'stg',
-      serviceName: 'rpj-test-app',
+      serviceName: 'banana-launcher',
     });
     expect(resolveEnvProps(envProps, stgConfig)).toStrictEqual({
       test: 'default test',
