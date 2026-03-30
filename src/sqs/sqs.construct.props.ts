@@ -2,14 +2,14 @@ import { Role } from 'aws-cdk-lib/aws-iam';
 import { DeadLetterQueue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { BaseConstructProps } from '../core/base.construct.props';
 import { StackEnv } from '../core/constants';
-import { EDAQueueType } from './sqs.constants';
+import { QueueType } from './sqs.constants';
 
 /**
  * Props for {@link sqsQueueName} naming function.
  */
 export interface SqsQueueNameProps {
   env: StackEnv;
-  queueType: EDAQueueType;
+  queueType: QueueType;
   serviceName: string;
   eventName: string;
   isFifo?: boolean;
@@ -25,10 +25,10 @@ export interface SqsDlqNameProps {
 }
 
 /**
- * Props for EDA queue constructs: {@link EDAStandardQueue}, {@link EDABackgroundTasksQueue},
- * {@link EDAFaninQueue}, and their FIFO variants.
+ * Props for queue constructs: {@link StandardQueue}, {@link BackgroundTasksQueue},
+ * {@link FaninQueue}, and their FIFO variants.
  */
-export interface EDAQueueProps extends BaseConstructProps {
+export interface SqsConstructProps extends BaseConstructProps {
   eventName: string;
   dlq: DeadLetterQueue;
   queueProps?: QueueProps;
@@ -56,13 +56,13 @@ export interface CfnSubscriptionProps {
  */
 export interface GrantFaninPublishingProps {
   role: Role;
-  faninQueues: FaninQueue[];
+  faninQueues: FaninQueueRef[];
   region: string;
   accountId: string;
   env: StackEnv;
 }
 
-export interface FaninQueue {
+export interface FaninQueueRef {
   eventName: string;
   serviceName: string;
 }

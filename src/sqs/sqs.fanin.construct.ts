@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import { awsArn } from '../core';
 import { resolveWithOverrides } from '../core/base.construct.env.props';
 import {
-  EDAQueueProps,
+  SqsConstructProps,
   GrantFaninPublishingProps,
 } from './sqs.construct.props';
 import { sqsQueueName } from './sqs.name.conventions';
@@ -49,8 +49,8 @@ export function grantFaninPublishing(props: GrantFaninPublishingProps): void {
  * Fan-in SQS queue that aggregates messages from multiple producing services.
  * Use {@link grantFaninPublishing} to allow remote services to send to this queue.
  */
-export class EDAFaninQueue extends SQSBase {
-  constructor(scope: Construct, props: EDAQueueProps) {
+export class FaninQueue extends SQSBase {
+  constructor(scope: Construct, props: SqsConstructProps) {
     const { config, eventName, dlq, queueProps } = props;
     const resourceName = sqsQueueName({
       env: config.stackEnv,
@@ -67,9 +67,9 @@ export class EDAFaninQueue extends SQSBase {
   }
 }
 
-/** FIFO variant of {@link EDAFaninQueue} with content-based deduplication. */
-export class EDAFaninQueueFifo extends SQSBaseFifo {
-  constructor(scope: Construct, props: EDAQueueProps) {
+/** FIFO variant of {@link FaninQueue} with content-based deduplication. */
+export class FaninQueueFifo extends SQSBaseFifo {
+  constructor(scope: Construct, props: SqsConstructProps) {
     const { config, eventName, dlq, queueProps } = props;
     const resourceName = sqsQueueName({
       env: config.stackEnv,

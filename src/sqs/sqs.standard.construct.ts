@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { resolveWithOverrides } from '../core/base.construct.env.props';
-import { EDAQueueProps } from './sqs.construct.props';
+import { SqsConstructProps } from './sqs.construct.props';
 import { sqsQueueName } from './sqs.name.conventions';
 import { SQSBase, SQSBaseFifo } from './sqs.base';
 import { sqsBaseEnvProps, sqsFifoBaseEnvProps } from './sqs.default.props';
@@ -13,8 +13,8 @@ import { sqsBaseEnvProps, sqsFifoBaseEnvProps } from './sqs.default.props';
  * @param props.dlq - Dead-letter queue to receive failed messages.
  * @param props.queueProps - Optional overrides for the default queue properties.
  */
-export class EDAStandardQueue extends SQSBase {
-  constructor(scope: Construct, props: EDAQueueProps) {
+export class StandardQueue extends SQSBase {
+  constructor(scope: Construct, props: SqsConstructProps) {
     const { config, eventName, dlq, queueProps } = props;
     const resourceName = sqsQueueName({
       env: config.stackEnv,
@@ -31,9 +31,9 @@ export class EDAStandardQueue extends SQSBase {
   }
 }
 
-/** FIFO variant of {@link EDAStandardQueue} with content-based deduplication. */
-export class EDAStandardQueueFifo extends SQSBaseFifo {
-  constructor(scope: Construct, props: EDAQueueProps) {
+/** FIFO variant of {@link StandardQueue} with content-based deduplication. */
+export class StandardQueueFifo extends SQSBaseFifo {
+  constructor(scope: Construct, props: SqsConstructProps) {
     const { config, eventName, dlq, queueProps } = props;
     const resourceName = sqsQueueName({
       env: config.stackEnv,

@@ -343,7 +343,7 @@ describe('DynamoTable', () => {
         }),
         alarmReadThreshold: 90,
         alarmWriteThreshold: 90,
-        pointInTimeRecovery: false,
+        pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: false },
         deletionProtection: false,
       },
       prd: {
@@ -360,7 +360,7 @@ describe('DynamoTable', () => {
         }),
         alarmReadThreshold: 90,
         alarmWriteThreshold: 90,
-        pointInTimeRecovery: false,
+        pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: false },
         deletionProtection: false,
       },
     };

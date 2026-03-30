@@ -1,2 +1,2 @@
 export * from './sns.construct.props';
-export * from './sns.eda.construct';
+export * from './sns.construct';

@@ -9,12 +9,12 @@ import { PolicyStatement, Role } from 'aws-cdk-lib/aws-iam';
 import { Topic, TopicProps } from 'aws-cdk-lib/aws-sns';
 import { Construct } from 'constructs';
 import { BaseConfig, BaseConstruct } from '../core';
-import { EDASnsProps } from './sns.construct.props';
+import { SnsTopicProps } from './sns.construct.props';
 import { snsTopicName } from './sns.name.conventions';
 
 const validateSnsFifoProps = (topicProps: TopicProps): void => {
   if (!topicProps.fifo) {
-    throw new Error('EDA Standard SNS FIFO requires fifo=true');
+    throw new Error('SNS FIFO requires fifo=true');
   }
 };
 
@@ -29,13 +29,13 @@ class SNSBase extends BaseConstruct<Topic> {
     isFifo = false,
   ) {
     const fifoSuffix = isFifo ? '-fifo' : '';
-    super(scope, 'eda-sns', `${eventName}${fifoSuffix}`, config);
+    super(scope, 'sns', `${eventName}${fifoSuffix}`, config);
     this.eventName = eventName;
     this.resource = this.createTopic(scope, topicProps);
   }
 
   private createTopic(scope: Construct, topicProps: TopicProps): Topic {
-    return new Topic(scope, this.resolver.childId('sns'), topicProps);
+    return new Topic(scope, this.resolver.childId('topic'), topicProps);
   }
 
   public getArn(): string {
@@ -47,7 +47,7 @@ class SNSBase extends BaseConstruct<Topic> {
     new CfnOutput(this, exportName + '-id', {
       value: this.resource.topicArn,
       exportName: exportName,
-      description: `The ARN of the EDA SNS topic ${this.resourceName} `,
+      description: `The ARN of the SNS topic ${this.resourceName} `,
     });
   }
 
@@ -95,8 +95,8 @@ class SNSBase extends BaseConstruct<Topic> {
  * @param eventName - Logical event name (e.g. "order-created") used in the topic name.
  * @param topicProps - Optional overrides merged onto the default topic properties.
  */
-export class EDASns extends SNSBase {
-  constructor(scope: Construct, props: EDASnsProps) {
+export class SnsTopic extends SNSBase {
+  constructor(scope: Construct, props: SnsTopicProps) {
     const { config, eventName } = props;
     let { topicProps } = props;
     const topicName = snsTopicName({ env: config.stackEnv, eventName });
@@ -105,9 +105,9 @@ export class EDASns extends SNSBase {
   }
 }
 
-/** FIFO variant of {@link EDASns} with content-based deduplication. */
-export class EDASnsFifo extends SNSBase {
-  constructor(scope: Construct, props: EDASnsProps) {
+/** FIFO variant of {@link SnsTopic} with content-based deduplication. */
+export class SnsTopicFifo extends SNSBase {
+  constructor(scope: Construct, props: SnsTopicProps) {
     const { config, eventName } = props;
     let { topicProps } = props;
     const topicName = snsTopicName({

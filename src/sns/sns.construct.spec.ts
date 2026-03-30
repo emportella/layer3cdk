@@ -8,16 +8,16 @@ import {
   ServicePrincipal,
 } from 'aws-cdk-lib/aws-iam';
 import { BaseConfig, constructId } from '../core';
-import { EDASns, EDASnsFifo } from './sns.eda.construct';
+import { SnsTopic, SnsTopicFifo } from './sns.construct';
 import { testconfig } from '../test/common.test.const';
 
-describe('EDASns', () => {
+describe('SnsTopic', () => {
   let stack: Stack;
   let config: BaseConfig;
   let iAMRole: Role;
   let eventName: string;
-  let sns: EDASns;
-  let snsFifo: EDASnsFifo;
+  let sns: SnsTopic;
+  let snsFifo: SnsTopicFifo;
   let topicRef: string;
 
   beforeEach(() => {
@@ -27,12 +27,12 @@ describe('EDASns', () => {
       assumedBy: new ServicePrincipal('sts.amazonaws.com'),
     });
     eventName = 'MyTopic';
-    sns = new EDASns(stack, { config, eventName });
+    sns = new SnsTopic(stack, { config, eventName });
     topicRef = stack.getLogicalId(
-      stack.node.findChild(constructId(config.stackName, 'sns', sns.eventName))
+      stack.node.findChild(constructId(config.stackName, 'topic', sns.eventName))
         .node.defaultChild as CfnElement,
     );
-    snsFifo = new EDASnsFifo(stack, { config, eventName });
+    snsFifo = new SnsTopicFifo(stack, { config, eventName });
   });
 
   it('should create a topic with the correct name', () => {
@@ -118,13 +118,13 @@ describe('EDASns', () => {
     });
   });
 
-  it('EDASnsFifo should throw error if topicProps has fifo false', () => {
+  it('SnsTopicFifo should throw error if topicProps has fifo false', () => {
     expect(() => {
-      new EDASnsFifo(new Stack(), {
+      new SnsTopicFifo(new Stack(), {
         config,
         eventName: 'FifoValidation',
         topicProps: { fifo: false },
       });
-    }).toThrow('EDA Standard SNS FIFO requires fifo=true');
+    }).toThrow('SNS FIFO requires fifo=true');
   });
 });

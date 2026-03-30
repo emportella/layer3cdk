@@ -6,19 +6,19 @@ import { Topic } from 'aws-cdk-lib/aws-sns';
 import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
-  EDAFaninQueue,
-  EDAFaninQueueFifo,
+  FaninQueue,
+  FaninQueueFifo,
   grantFaninPublishing,
-} from './sqs.eda.fanin.construct';
+} from './sqs.fanin.construct';
 import { testconfig } from '../test/common.test.const';
 
-describe('EDAFaninQueue', () => {
+describe('FaninQueue', () => {
   let stack: Stack;
   let config: BaseConfig;
   let dlq: DLQ;
   let dlqfifo: DLQFifo;
-  let faninQueue: EDAFaninQueue;
-  let faninQueueFifo: EDAFaninQueueFifo;
+  let faninQueue: FaninQueue;
+  let faninQueueFifo: FaninQueueFifo;
   let eventName: string;
   let faninQueueRef: string;
 
@@ -28,16 +28,16 @@ describe('EDAFaninQueue', () => {
     config = testconfig;
     dlq = new DLQ(stack, config);
     dlqfifo = new DLQFifo(stack, { config });
-    faninQueue = new EDAFaninQueue(stack, {
+    faninQueue = new FaninQueue(stack, {
       eventName,
       dlq: dlq.getDlq(),
       config,
     });
     faninQueueRef = stack.getLogicalId(
-      stack.node.findChild(`${config.stackName}-sqs-${faninQueue.resourceName}`)
+      stack.node.findChild(`${config.stackName}-queue-${faninQueue.resourceName}`)
         .node.defaultChild as CfnElement,
     );
-    faninQueueFifo = new EDAFaninQueueFifo(stack, {
+    faninQueueFifo = new FaninQueueFifo(stack, {
       eventName,
       dlq: dlqfifo.getDlq(),
       config,
@@ -220,9 +220,9 @@ describe('EDAFaninQueue', () => {
       });
     });
   });
-  it('EDAStandardFifo Should throw error if QueueProp has fifo false', () => {
+  it('StandardQueueFifo Should throw error if QueueProp has fifo false', () => {
     expect(() => {
-      new EDAFaninQueueFifo(stack, {
+      new FaninQueueFifo(stack, {
         eventName: 'eventName1',
         dlq: dlqfifo.getDlq(),
         config,
@@ -231,9 +231,9 @@ describe('EDAFaninQueue', () => {
       return Template.fromStack(stack);
     }).toThrow("Non-FIFO queue name may not end in '.fifo'");
   });
-  it('EDAStandardFifo Should throw error if dlq is not fifo', () => {
+  it('StandardQueueFifo Should throw error if dlq is not fifo', () => {
     expect(() => {
-      new EDAFaninQueueFifo(stack, {
+      new FaninQueueFifo(stack, {
         eventName: 'eventName1',
         dlq: dlq.getDlq(),
         config,

@@ -1,21 +1,21 @@
 import { Role } from 'aws-cdk-lib/aws-iam';
 import { Construct } from 'constructs';
 import { resolveWithOverrides } from '../core/base.construct.env.props';
-import { EDAQueueProps } from './sqs.construct.props';
+import { SqsConstructProps } from './sqs.construct.props';
 import { sqsQueueName } from './sqs.name.conventions';
 import { SQSBase, SQSBaseFifo } from './sqs.base';
 import { sqsBaseEnvProps, sqsFifoBaseEnvProps } from './sqs.default.props';
 
 /**
- * SQS queue for background/async tasks. Unlike {@link EDAStandardQueue}, this grants
+ * SQS queue for background/async tasks. Unlike {@link StandardQueue}, this grants
  * both consume and send permissions so the owning service can enqueue its own work.
  *
  * @param props.eventName - Logical event name used in the queue's resource name.
  * @param props.dlq - Dead-letter queue to receive failed messages.
  * @param props.queueProps - Optional overrides for the default queue properties.
  */
-export class EDABackgroundTasksQueue extends SQSBase {
-  constructor(scope: Construct, props: EDAQueueProps) {
+export class BackgroundTasksQueue extends SQSBase {
+  constructor(scope: Construct, props: SqsConstructProps) {
     const { config, eventName, dlq, queueProps } = props;
     const resourceName = sqsQueueName({
       env: config.stackEnv,
@@ -37,9 +37,9 @@ export class EDABackgroundTasksQueue extends SQSBase {
   }
 }
 
-/** FIFO variant of {@link EDABackgroundTasksQueue} with content-based deduplication. */
-export class EDABackgroundTasksQueueFifo extends SQSBaseFifo {
-  constructor(scope: Construct, props: EDAQueueProps) {
+/** FIFO variant of {@link BackgroundTasksQueue} with content-based deduplication. */
+export class BackgroundTasksQueueFifo extends SQSBaseFifo {
+  constructor(scope: Construct, props: SqsConstructProps) {
     const { config, eventName, dlq, queueProps } = props;
     const resourceName = sqsQueueName({
       env: config.stackEnv,

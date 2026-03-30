@@ -1,1 +1,1 @@
-export type EDAQueueType = 'st' | 'task' | 'fanin';
+export type QueueType = 'st' | 'task' | 'fanin';

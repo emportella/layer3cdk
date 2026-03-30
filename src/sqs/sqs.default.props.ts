@@ -3,7 +3,7 @@ import { DeadLetterQueue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { BaseEnvProps } from '../core';
 
 /**
- * Returns the base environment props shared across all EDA SQS queue variants.
+ * Returns the base environment props shared across all SQS queue variants.
  *
  * @param queueName - The resolved queue name.
  * @param dlq - The dead-letter queue configuration.

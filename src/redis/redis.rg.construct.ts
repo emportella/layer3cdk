@@ -30,8 +30,7 @@ type ExcludeProps =
   | 'transitEncryptionEnabled'
   | 'transitEncryptionMode'
   | 'ipDiscovery'
-  | 'cacheSubnetGroupName'
-  | 'cacheSecurityGroupNames';
+  | 'cacheSubnetGroupName';
 
 export type RedisReplicationGroupProps = Omit<
   CfnReplicationGroupProps,

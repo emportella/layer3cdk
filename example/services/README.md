@@ -133,13 +133,13 @@ Every construct in the library is demonstrated in this example:
 | `ApplicationRepository` (ECR) | TacoProcessor, NachoAgency, SalsaNotifier, GuacWarehouse |
 | `DLQ` | TacoProcessor, SalsaNotifier, GuacWarehouse |
 | `DLQFifo` | SalsaNotifier |
-| `EDAStandardQueue` | TacoProcessor, SalsaNotifier, GuacWarehouse |
-| `EDAStandardQueueFifo` | SalsaNotifier |
-| `EDABackgroundTasksQueue` | TacoProcessor |
-| `EDAFaninQueue` | SalsaNotifier |
+| `StandardQueue` | TacoProcessor, SalsaNotifier, GuacWarehouse |
+| `StandardQueueFifo` | SalsaNotifier |
+| `BackgroundTasksQueue` | TacoProcessor |
+| `FaninQueue` | SalsaNotifier |
 | `grantFaninPublishing` | TacoProcessor |
-| `EDASns` | NachoAgency, GuacWarehouse |
-| `EDASnsFifo` | NachoAgency |
+| `SnsTopic` | NachoAgency, GuacWarehouse |
+| `SnsTopicFifo` | NachoAgency |
 | `DynamoTable` | TacoProcessor |
 | `RedisReplicationGroup` | TacoProcessor |
 | `NodejsLambdaFunction` | TacoProcessor |
@@ -188,7 +188,7 @@ This sets the team and department for all stacks via `BaseStackConfig`. Individu
 - **SSM parameters** at three scope levels: global, department, service
 - **Secrets Manager** for sensitive credentials
 - **Static site** (SSS3) with S3 + CloudFront + ACM + Route 53
-- **FIFO variants** — `DLQFifo`, `EDAStandardQueueFifo`, `EDASnsFifo` for ordered processing
+- **FIFO variants** — `DLQFifo`, `StandardQueueFifo`, `SnsTopicFifo` for ordered processing
 - **Background tasks queue** for async processing patterns
 
 ## Commands

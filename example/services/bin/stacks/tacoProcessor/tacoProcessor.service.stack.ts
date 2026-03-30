@@ -4,8 +4,8 @@ import {
   BaseStack,
   ServiceAccountRole,
   DLQ,
-  EDAStandardQueue,
-  EDABackgroundTasksQueue,
+  StandardQueue,
+  BackgroundTasksQueue,
   grantFaninPublishing,
   ApplicationRepository,
   DynamoTable,
@@ -91,7 +91,7 @@ export class TacoProcessorServiceStack extends BaseStack {
   // --- SQS Standard Queues ---
 
   private createOrderPlacedQueue() {
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'OrderPlaced',
       dlq: this.dlq.getDlq(),
@@ -104,7 +104,7 @@ export class TacoProcessorServiceStack extends BaseStack {
   }
 
   private createSauceStatusUpdatedQueue() {
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'SauceStatusUpdated',
       dlq: this.dlq.getDlq(),
@@ -120,7 +120,7 @@ export class TacoProcessorServiceStack extends BaseStack {
     const ACCOUNT =
       this.config.stackEnv == 'prd' ? '111111111111' : '222222222222';
 
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'BurritoSubmitted',
       dlq: this.dlq.getDlq(),
@@ -133,7 +133,7 @@ export class TacoProcessorServiceStack extends BaseStack {
   }
 
   private createRecipeUpdatedQueue() {
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'RecipeUpdated',
       dlq: this.dlq.getDlq(),
@@ -146,7 +146,7 @@ export class TacoProcessorServiceStack extends BaseStack {
   }
 
   private createTacoScoreChangedQueue() {
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'TacoScoreChanged',
       dlq: this.dlq.getDlq(),
@@ -176,7 +176,7 @@ export class TacoProcessorServiceStack extends BaseStack {
   // --- Background Tasks Queue ---
 
   private createScoreRecalculationTask() {
-    const queue = new EDABackgroundTasksQueue(this, {
+    const queue = new BackgroundTasksQueue(this, {
       config: this.config,
       eventName: 'RecalculateTacoScore',
       dlq: this.dlq.getDlq(),

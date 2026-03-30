@@ -34,8 +34,8 @@ export const DYNAMO_ENVIRONMENTS_PROPS: BaseEnvProps<DynamoConfig> = {
     alarmWriteThreshold: 20,
     removalPolicy: RemovalPolicy.RETAIN,
     encryption: TableEncryptionV2.dynamoOwnedKey(),
-    pointInTimeRecovery: false,
-    contributorInsights: false,
+    pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: false },
+    contributorInsightsSpecification: { enabled: false },
   },
   prd: {
     tableClass: TableClass.STANDARD,
@@ -47,8 +47,8 @@ export const DYNAMO_ENVIRONMENTS_PROPS: BaseEnvProps<DynamoConfig> = {
     alarmWriteThreshold: 40,
     removalPolicy: RemovalPolicy.RETAIN,
     encryption: TableEncryptionV2.dynamoOwnedKey(),
-    pointInTimeRecovery: true,
-    contributorInsights: true,
+    pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
+    contributorInsightsSpecification: { enabled: true },
     deletionProtection: true,
   },
 };

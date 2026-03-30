@@ -3,9 +3,9 @@ import {
   ServiceAccountRole,
   DLQ,
   DLQFifo,
-  EDAStandardQueue,
-  EDAStandardQueueFifo,
-  EDAFaninQueue,
+  StandardQueue,
+  StandardQueueFifo,
+  FaninQueue,
   ApplicationRepository,
   DepartmentSSMStringParameter,
 } from 'layer3cdk';
@@ -71,7 +71,7 @@ export class SalsaNotifierServiceStack extends BaseStack {
   // --- Standard Queues ---
 
   private createOrderPlacedQueue() {
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'OrderPlaced',
       dlq: this.dlq.getDlq(),
@@ -84,7 +84,7 @@ export class SalsaNotifierServiceStack extends BaseStack {
   }
 
   private createNotificationFanInQueue() {
-    const queue = new EDAFaninQueue(this, {
+    const queue = new FaninQueue(this, {
       config: this.config,
       eventName: 'SendNotification',
       dlq: this.dlq.getDlq(),
@@ -96,7 +96,7 @@ export class SalsaNotifierServiceStack extends BaseStack {
   // --- FIFO Queue (guaranteed ordering for notification delivery) ---
 
   private createOrderedNotificationQueue() {
-    const queue = new EDAStandardQueueFifo(this, {
+    const queue = new StandardQueueFifo(this, {
       config: this.config,
       eventName: 'OrderedNotificationDelivery',
       dlq: this.dlqFifo.getDlq(),

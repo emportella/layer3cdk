@@ -1,8 +1,8 @@
 import {
   BaseStack,
   ServiceAccountRole,
-  EDASns,
-  EDASnsFifo,
+  SnsTopic,
+  SnsTopicFifo,
   ApplicationRepository,
   EcsCluster,
   EcsFargateService,
@@ -48,7 +48,7 @@ export class NachoAgencyServiceStack extends BaseStack {
   // --- SNS Standard Topic ---
 
   private createIngredientStateTransferTopic() {
-    const topic = new EDASns(this, {
+    const topic = new SnsTopic(this, {
       config: this.config,
       eventName: 'IngredientStateTransfer',
     });
@@ -60,7 +60,7 @@ export class NachoAgencyServiceStack extends BaseStack {
   // --- SNS FIFO Topic (ordered ingredient events) ---
 
   private createOrderedIngredientTopic() {
-    const topic = new EDASnsFifo(this, {
+    const topic = new SnsTopicFifo(this, {
       config: this.config,
       eventName: 'OrderedIngredientUpdate',
     });

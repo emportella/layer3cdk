@@ -94,8 +94,8 @@ export class DynamoTable extends BaseConstruct<TableV2> {
     const validationErrors: string[] = [];
     if (this.config.stackEnv === 'prd') {
       if (
-        this.tableProps.pointInTimeRecovery === false ||
-        this.tableProps.pointInTimeRecovery === undefined
+        !this.tableProps.pointInTimeRecoverySpecification
+          ?.pointInTimeRecoveryEnabled
       ) {
         validationErrors.push(
           'Point in Time Recovery must be enabled in production environment',

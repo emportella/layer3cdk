@@ -5,14 +5,14 @@ import { BaseConfig } from './base.config';
 import {
   DLQ,
   DLQFifo,
-  EDAStandardQueue,
-  EDAStandardQueueFifo,
-  EDABackgroundTasksQueue,
-  EDABackgroundTasksQueueFifo,
-  EDAFaninQueue,
-  EDAFaninQueueFifo,
+  StandardQueue,
+  StandardQueueFifo,
+  BackgroundTasksQueue,
+  BackgroundTasksQueueFifo,
+  FaninQueue,
+  FaninQueueFifo,
 } from '../sqs';
-import { EDASns, EDASnsFifo } from '../sns';
+import { SnsTopic, SnsTopicFifo } from '../sns';
 import { DynamoTable } from '../dynamo';
 import { ApplicationRepository } from '../ecr';
 import {
@@ -84,50 +84,50 @@ describe('Construct ID Collision Detection', () => {
     const dlqFifo = new DLQFifo(stack, { config });
 
     // --- SQS Standard Queues ---
-    new EDAStandardQueue(stack, {
+    new StandardQueue(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlq.getDlq(),
     });
-    new EDAStandardQueue(stack, {
+    new StandardQueue(stack, {
       config,
       eventName: 'OrderUpdated',
       dlq: dlq.getDlq(),
     });
-    new EDAStandardQueueFifo(stack, {
+    new StandardQueueFifo(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlqFifo.getDlq(),
     });
 
     // --- SQS Background Tasks ---
-    new EDABackgroundTasksQueue(stack, {
+    new BackgroundTasksQueue(stack, {
       config,
       eventName: 'ProcessPayment',
       dlq: dlq.getDlq(),
     });
-    new EDABackgroundTasksQueueFifo(stack, {
+    new BackgroundTasksQueueFifo(stack, {
       config,
       eventName: 'ProcessPayment',
       dlq: dlqFifo.getDlq(),
     });
 
     // --- SQS Fan-in ---
-    new EDAFaninQueue(stack, {
+    new FaninQueue(stack, {
       config,
       eventName: 'AggregateOrders',
       dlq: dlq.getDlq(),
     });
-    new EDAFaninQueueFifo(stack, {
+    new FaninQueueFifo(stack, {
       config,
       eventName: 'AggregateOrders',
       dlq: dlqFifo.getDlq(),
     });
 
     // --- SNS Topics ---
-    new EDASns(stack, { config, eventName: 'OrderCreated' });
-    new EDASns(stack, { config, eventName: 'OrderUpdated' });
-    new EDASnsFifo(stack, { config, eventName: 'OrderCreated' });
+    new SnsTopic(stack, { config, eventName: 'OrderCreated' });
+    new SnsTopic(stack, { config, eventName: 'OrderUpdated' });
+    new SnsTopicFifo(stack, { config, eventName: 'OrderCreated' });
 
     // --- DynamoDB Tables ---
     new DynamoTable(stack, {
@@ -209,17 +209,17 @@ describe('Construct ID Collision Detection', () => {
     const dlq = new DLQ(stack, config);
 
     // Same eventName, different queue types — must not collide
-    const stQueue = new EDAStandardQueue(stack, {
+    const stQueue = new StandardQueue(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlq.getDlq(),
     });
-    const taskQueue = new EDABackgroundTasksQueue(stack, {
+    const taskQueue = new BackgroundTasksQueue(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlq.getDlq(),
     });
-    const faninQueue = new EDAFaninQueue(stack, {
+    const faninQueue = new FaninQueue(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlq.getDlq(),
@@ -239,12 +239,12 @@ describe('Construct ID Collision Detection', () => {
 
     const dlq = new DLQ(stack, config);
 
-    const queue1 = new EDAStandardQueue(stack, {
+    const queue1 = new StandardQueue(stack, {
       config,
       eventName: 'EventA',
       dlq: dlq.getDlq(),
     });
-    const queue2 = new EDAStandardQueue(stack, {
+    const queue2 = new StandardQueue(stack, {
       config,
       eventName: 'EventB',
       dlq: dlq.getDlq(),
@@ -267,12 +267,12 @@ describe('Construct ID Collision Detection', () => {
     const stack = new Stack(app, 'ExportCollisionStack');
 
     const dlq = new DLQ(stack, config);
-    const queue = new EDAStandardQueue(stack, {
+    const queue = new StandardQueue(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlq.getDlq(),
     });
-    const topic = new EDASns(stack, { config, eventName: 'OrderCreated' });
+    const topic = new SnsTopic(stack, { config, eventName: 'OrderCreated' });
 
     // Even though eventName is the same, SQS has queueType prefix
     expect(queue.resolver.arnExportName()).not.toEqual(
@@ -291,12 +291,12 @@ describe('Construct ID Collision Detection', () => {
     const stack = new Stack(app, 'NoRedundancyStack');
 
     const dlq = new DLQ(stack, config);
-    const queue = new EDAStandardQueue(stack, {
+    const queue = new StandardQueue(stack, {
       config,
       eventName: 'OrderCreated',
       dlq: dlq.getDlq(),
     });
-    const topic = new EDASns(stack, { config, eventName: 'OrderCreated' });
+    const topic = new SnsTopic(stack, { config, eventName: 'OrderCreated' });
     const table = new DynamoTable(stack, {
       config,
       tableName: 'Orders',

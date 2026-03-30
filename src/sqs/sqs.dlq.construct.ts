@@ -72,7 +72,7 @@ class DLQBase extends BaseConstruct<Queue> {
 
 /**
  * Standard (non-FIFO) dead-letter queue with a 14-day retention period.
- * Use {@link DLQ.getDlq} to wire it into an EDA queue construct.
+ * Use {@link DLQ.getDlq} to wire it into a queue construct.
  */
 export class DLQ extends DLQBase {
   constructor(scope: Construct, config: BaseConfig) {

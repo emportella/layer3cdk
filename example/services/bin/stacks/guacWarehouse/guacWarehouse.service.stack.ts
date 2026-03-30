@@ -2,9 +2,9 @@ import * as path from 'path';
 import {
   BaseStack,
   ServiceAccountRole,
-  EDASns,
+  SnsTopic,
   DLQ,
-  EDAStandardQueue,
+  StandardQueue,
   ApplicationRepository,
   LambdaFunction,
 } from 'layer3cdk';
@@ -84,7 +84,7 @@ export class GuacWarehouseServiceStack extends BaseStack {
         ? PRD_WAREHOUSE_BUCKET
         : DEV_WAREHOUSE_BUCKET;
 
-    const queue = new EDAStandardQueue(this, {
+    const queue = new StandardQueue(this, {
       config: this.config,
       eventName: 'SpicyRecipeFileCreated',
       dlq: this.dlq.getDlq(),
@@ -107,7 +107,7 @@ export class GuacWarehouseServiceStack extends BaseStack {
   }
 
   private createRecipeUpdatedTopic() {
-    const topic = new EDASns(this, {
+    const topic = new SnsTopic(this, {
       config: this.config,
       eventName: 'RecipeUpdated',
     });

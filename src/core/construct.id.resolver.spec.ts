@@ -115,11 +115,11 @@ describe('ConstructIdResolver', () => {
     it('SQS construct ID should not repeat env or service', () => {
       const sqs = new ConstructIdResolver({
         stackName: 'dev-TacoLauncher',
-        resourceType: 'eda-sqs',
+        resourceType: 'sqs',
         resourceName: 'st-OrderCreated',
       });
       const id = sqs.constructId;
-      expect(id).toEqual('dev-TacoLauncher-eda-sqs-st-OrderCreated');
+      expect(id).toEqual('dev-TacoLauncher-sqs-st-OrderCreated');
       // env should appear only once
       expect(id.match(/dev/g)?.length).toBe(1);
       // service should appear only once
@@ -148,11 +148,11 @@ describe('ConstructIdResolver', () => {
     it('SNS construct ID should not repeat env', () => {
       const sns = new ConstructIdResolver({
         stackName: 'dev-TacoLauncher',
-        resourceType: 'eda-sns',
+        resourceType: 'sns',
         resourceName: 'OrderCreated',
       });
       const id = sns.constructId;
-      expect(id).toEqual('dev-TacoLauncher-eda-sns-OrderCreated');
+      expect(id).toEqual('dev-TacoLauncher-sns-OrderCreated');
       expect(id.match(/dev/g)?.length).toBe(1);
     });
   });

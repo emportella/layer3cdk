@@ -9,7 +9,7 @@
 Layer3CDK sits on top of [AWS CDK](https://aws.amazon.com/cdk/) and provides high-level, opinionated constructs for the services teams use every day -- SQS, SNS, DynamoDB, ElastiCache Redis, ECR, Lambda, ECS Fargate, SSM, Secrets Manager, S3 static sites, IAM, and CloudWatch Alarms. Instead of wiring up 50+ lines of CDK per resource, you write one construct call with a props object and get consistent naming, tagging, alarms, IAM grants, and environment-aware configuration out of the box.
 
 ```typescript
-import { BaseStackConfig, DynamoTable, EDAStandardQueue, DLQ, EDASns, NodejsLambdaFunction } from 'layer3cdk';
+import { BaseStackConfig, DynamoTable, StandardQueue, DLQ, SnsTopic, NodejsLambdaFunction } from 'layer3cdk';
 
 // Centralized config from cdk.json context
 const stackConfig = BaseStackConfig.getInstance(app);
@@ -28,10 +28,10 @@ const table = new DynamoTable(this, {
 
 // Dead-letter queue + event queue with alarms
 const dlq = new DLQ(this, config);
-const queue = new EDAStandardQueue(this, { config, eventName: 'OrderCreated', dlq: dlq.getDlq() });
+const queue = new StandardQueue(this, { config, eventName: 'OrderCreated', dlq: dlq.getDlq() });
 
 // SNS topic
-const topic = new EDASns(this, { config, eventName: 'OrderCreated' });
+const topic = new SnsTopic(this, { config, eventName: 'OrderCreated' });
 
 // Lambda with esbuild bundling
 const fn = new NodejsLambdaFunction(this, {
@@ -93,7 +93,7 @@ This is picked up by `BaseStackConfig.getInstance(app)` and flows into every `cr
 
 ```typescript
 import { App } from 'aws-cdk-lib';
-import { BaseStackConfig, BaseStack, DLQ, EDAStandardQueue, EDASns, ServiceAccountRole } from 'layer3cdk';
+import { BaseStackConfig, BaseStack, DLQ, StandardQueue, SnsTopic, ServiceAccountRole } from 'layer3cdk';
 
 const app = new App();
 const stackConfig = BaseStackConfig.getInstance(app);
@@ -114,14 +114,14 @@ const serviceAccount = new ServiceAccountRole(stack, {
 const dlq = new DLQ(stack, config);
 
 // Event queue with built-in stale-message and depth alarms
-const queue = new EDAStandardQueue(stack, {
+const queue = new StandardQueue(stack, {
   config,
   eventName: 'TaskCreated',
   dlq: dlq.getDlq(),
 });
 
 // SNS topic with notification-failure alarm
-const topic = new EDASns(stack, { config, eventName: 'TaskCreated' });
+const topic = new SnsTopic(stack, { config, eventName: 'TaskCreated' });
 
 // Wire everything together
 topic.grantPolicies(serviceAccount.getRole());
@@ -135,8 +135,8 @@ queue.grantPolicies(serviceAccount.getRole());
 
 | Module | Constructs | Description |
 |---|---|---|
-| **SQS** | `DLQ`, `DLQFifo`, `EDAStandardQueue/Fifo`, `EDABackgroundTasksQueue/Fifo`, `EDAFaninQueue/Fifo` | Event-driven queues with DLQs, alarms, and fan-in support |
-| **SNS** | `EDASns`, `EDASnsFifo` | Event topics with notification-failure alarms |
+| **SQS** | `DLQ`, `DLQFifo`, `StandardQueue/Fifo`, `BackgroundTasksQueue/Fifo`, `FaninQueue/Fifo` | Event-driven queues with DLQs, alarms, and fan-in support |
+| **SNS** | `SnsTopic`, `SnsTopicFifo` | Event topics with notification-failure alarms |
 | **DynamoDB** | `DynamoTable` | Tables with capacity alarms, throttle detection, and prod validation |
 | **Redis** | `RedisReplicationGroup` | ElastiCache with enforced encryption and subnet management |
 | **ECR** | `ApplicationRepository` | Environment-aware container repositories |
@@ -158,7 +158,7 @@ queue.grantPolicies(serviceAccount.getRole());
 Every construct takes `(scope, props)` where `props` is a typed interface extending `BaseConstructProps`. This gives you full IDE autocomplete:
 
 ```typescript
-const queue = new EDAStandardQueue(this, {
+const queue = new StandardQueue(this, {
   config,          // BaseConfig -- required by all constructs
   eventName: 'OrderCreated',
   dlq: dlq.getDlq(),
@@ -177,7 +177,7 @@ const dynamoConfig: BaseEnvProps<DynamoConfig> = {
     billing: Billing.onDemand(),
     alarmReadThreshold: 100,
     alarmWriteThreshold: 100,
-    pointInTimeRecovery: true,
+    pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
     deletionProtection: true,
   },
 };
@@ -321,7 +321,7 @@ See the [example README](./example/services/README.md) for the full resource bre
 src/
   core/                          # Foundation: BaseConstruct, BaseConfig, BaseStackConfig, naming, env resolution, tags
   sqs/                           # SQS constructs (DLQ, Standard, BackgroundTasks, Fanin)
-  sns/                           # SNS constructs (EDASns, EDASnsFifo)
+  sns/                           # SNS constructs (SnsTopic, SnsTopicFifo)
   dynamo/                        # DynamoDB construct
   redis/                         # ElastiCache Redis construct
   ecr/                           # ECR repository construct

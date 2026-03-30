@@ -16,8 +16,8 @@ First release of Layer3CDK.
 #### Added
 - Core foundation: `BaseConstruct<T>`, `BaseConfig`, `BaseStackConfig`, `BaseStack`, `BaseEnvProps<T>`, environment resolution functions (`resolveEnvProps`, `resolveWithOverrides`, `resolveAndMergeEnvProps`, `envDependentBuild`).
 - Props-based API: all construct constructors use `(scope, props)` pattern with dedicated `*.construct.props.ts` files per module. `BaseConstructProps` serves as the composition base for all construct props.
-- SQS constructs: `DLQ`, `DLQFifo`, `EDAStandardQueue/Fifo`, `EDABackgroundTasksQueue/Fifo`, `EDAFaninQueue/Fifo`, `grantFaninPublishing`.
-- SNS constructs: `EDASns`, `EDASnsFifo`.
+- SQS constructs: `DLQ`, `DLQFifo`, `StandardQueue/Fifo`, `BackgroundTasksQueue/Fifo`, `FaninQueue/Fifo`, `grantFaninPublishing`.
+- SNS constructs: `SnsTopic`, `SnsTopicFifo`.
 - DynamoDB construct: `DynamoTable` with built-in CloudWatch alarms and production validations.
 - Redis construct: `RedisReplicationGroup` with enforced encryption and automatic subnet group creation.
 - SSM constructs: `GlobalSSMStringParameter`, `DepartmentSSMStringParameter`, `ServiceSSMStringParameter`.

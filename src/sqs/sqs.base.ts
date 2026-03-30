@@ -15,7 +15,7 @@ import { Queue, QueueProps } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 import { BaseConfig, BaseConstruct } from '../core';
 import { CfnSubscriptionProps } from './sqs.construct.props';
-import { EDAQueueType } from './sqs.constants';
+import { QueueType } from './sqs.constants';
 
 const validateFifoQueueProps = (queueProps: QueueProps): string[] => {
   const validationErrors: string[] = [];
@@ -36,7 +36,7 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
 
   constructor(
     scope: Construct,
-    queueType: EDAQueueType,
+    queueType: QueueType,
     eventName: string,
     config: BaseConfig,
     queueProps: QueueProps,
@@ -44,13 +44,13 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
   ) {
     const fifoSuffix = isFifo ? '-fifo' : '';
     const logicalName = `${queueType}-${eventName}${fifoSuffix}`;
-    super(scope, 'eda-sqs', logicalName, config);
+    super(scope, 'sqs', logicalName, config);
     this.resource = this.createQueue(scope, queueProps);
     this.eventName = eventName;
   }
 
   private createQueue(scope: Construct, queueProps: QueueProps): Queue {
-    return new Queue(scope, this.resolver.childId('sqs'), queueProps);
+    return new Queue(scope, this.resolver.childId('queue'), queueProps);
   }
 
   private topicFromArn(arn: string): Topic {
@@ -133,7 +133,7 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
    * ```typescript
    * import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
    *
-   * const queue = new EDAStandardQueue(stack, { config, eventName: 'OrderCreated', dlq: dlq.getDlq() });
+   * const queue = new StandardQueue(stack, { config, eventName: 'OrderCreated', dlq: dlq.getDlq() });
    * lambdaFn.getFunction().addEventSource(new SqsEventSource(queue.getQueue()));
    * ```
    */
@@ -209,7 +209,7 @@ export abstract class SQSBase extends BaseConstruct<Queue> {
 export abstract class SQSBaseFifo extends SQSBase {
   constructor(
     scope: Construct,
-    queueType: EDAQueueType,
+    queueType: QueueType,
     eventName: string,
     config: BaseConfig,
     queueProps: QueueProps,

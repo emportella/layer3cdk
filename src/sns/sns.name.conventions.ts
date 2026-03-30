@@ -2,7 +2,7 @@ import { trimDashes } from '../util';
 import { SnsTopicNameProps } from './sns.construct.props';
 
 /**
- * Provides the EDA topic naming convention for SNS topic
+ * Provides the topic naming convention for SNS topic
  * @param props.env - dev, stg, prd all lower cased
  * @param props.eventName - PascalCaseEventName only
  * @param props.isFifo - true if the topic is a FIFO topic

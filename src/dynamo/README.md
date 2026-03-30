@@ -17,8 +17,8 @@ We choose to break down the properties of the original aws-cdk DynamoDB properti
     - `billing`
     - `removalPolicy`
     - `encryption`
-    - `pointInTimeRecovery`
-    - `contributorInsights`
+    - `pointInTimeRecoverySpecification`
+    - `contributorInsightsSpecification`
     - `deletionProtection`
     - `replicas`
     - `dynamoStream`

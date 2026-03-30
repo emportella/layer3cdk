@@ -12,9 +12,9 @@ export interface SnsTopicNameProps {
 }
 
 /**
- * Props for {@link EDASns} and {@link EDASnsFifo} constructs.
+ * Props for {@link SnsTopic} and {@link SnsTopicFifo} constructs.
  */
-export interface EDASnsProps extends BaseConstructProps {
+export interface SnsTopicProps extends BaseConstructProps {
   eventName: string;
   topicProps?: TopicProps;
 }

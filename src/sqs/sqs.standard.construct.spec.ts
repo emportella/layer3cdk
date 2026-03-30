@@ -11,18 +11,18 @@ import { FilterOrPolicy, SubscriptionFilter, Topic } from 'aws-cdk-lib/aws-sns';
 import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
 import {
-  EDAStandardQueue,
-  EDAStandardQueueFifo,
-} from './sqs.eda.standard.construct';
+  StandardQueue,
+  StandardQueueFifo,
+} from './sqs.standard.construct';
 import { testconfig } from '../test/common.test.const';
 
-describe('EDAStandardQueue', () => {
+describe('StandardQueue', () => {
   let stack: Stack;
   let config: BaseConfig;
   let dlq: DLQ;
   let dlqFifo: DLQFifo;
-  let standardQueue: EDAStandardQueue;
-  let standardQueueFifo: EDAStandardQueueFifo;
+  let standardQueue: StandardQueue;
+  let standardQueueFifo: StandardQueueFifo;
   let eventName: string;
   let standardQueueRef: string;
 
@@ -31,18 +31,18 @@ describe('EDAStandardQueue', () => {
     eventName = 'TestEventCreated';
     config = testconfig;
     dlq = new DLQ(stack, config);
-    standardQueue = new EDAStandardQueue(stack, {
+    standardQueue = new StandardQueue(stack, {
       eventName,
       dlq: dlq.getDlq(),
       config,
     });
     standardQueueRef = stack.getLogicalId(
       stack.node.findChild(
-        `${config.stackName}-sqs-${standardQueue.resourceName}`,
+        `${config.stackName}-queue-${standardQueue.resourceName}`,
       ).node.defaultChild as CfnElement,
     );
     dlqFifo = new DLQFifo(stack, { config });
-    standardQueueFifo = new EDAStandardQueueFifo(stack, {
+    standardQueueFifo = new StandardQueueFifo(stack, {
       eventName,
       dlq: dlqFifo.getDlq(),
       config,
@@ -165,9 +165,9 @@ describe('EDAStandardQueue', () => {
       Roles: [{ Ref: roleRef }],
     });
   });
-  it('EDAStandardFifo Should throw error if QueueProp has fifo false', () => {
+  it('StandardQueueFifo Should throw error if QueueProp has fifo false', () => {
     expect(() => {
-      new EDAStandardQueueFifo(stack, {
+      new StandardQueueFifo(stack, {
         eventName: 'eventName1',
         dlq: dlqFifo.getDlq(),
         config,
@@ -176,8 +176,8 @@ describe('EDAStandardQueue', () => {
       return Template.fromStack(stack);
     }).toThrow("Non-FIFO queue name may not end in '.fifo'");
   });
-  it('EDAStandardFifo Should throw error if dlq is not fifo', () => {
-    new EDAStandardQueueFifo(stack, {
+  it('StandardQueueFifo Should throw error if dlq is not fifo', () => {
+    new StandardQueueFifo(stack, {
       eventName: 'eventName1',
       dlq: dlq.getDlq(),
       config,
@@ -186,7 +186,7 @@ describe('EDAStandardQueue', () => {
       'Queues that are FIFO requires dlq to be a FIFO queue',
     );
   });
-  it('EDAStandardFifo.subscribeFromSnsTopicArnWithProps should create a subscription with a filter', () => {
+  it('StandardQueueFifo.subscribeFromSnsTopicArnWithProps should create a subscription with a filter', () => {
     standardQueueFifo.subscribeFromSnsTopicArnWithProps(
       'arn:aws:sns:us-east-1:123456789012:testsns',
       {
@@ -205,7 +205,7 @@ describe('EDAStandardQueue', () => {
       },
     });
   });
-  it('EDAStandardQueueFifo.subscribeWithCfnSubscription should createa subscription with a filter', () => {
+  it('StandardQueueFifo.subscribeWithCfnSubscription should createa subscription with a filter', () => {
     standardQueueFifo.subscribeWithCfnSubscription({
       arn: 'arn:aws:sns:us-east-1:123456789012:testsns',
       filterPolicyScope: 'MessageBody',
@@ -255,7 +255,7 @@ describe('EDAStandardQueue', () => {
   it('should apply RETAIN removal policy to the standard queue', () => {
     const freshStack = new Stack();
     const freshDlq = new DLQ(freshStack, config);
-    const queue = new EDAStandardQueue(freshStack, {
+    const queue = new StandardQueue(freshStack, {
       eventName: 'RemovalTest',
       dlq: freshDlq.getDlq(),
       config,

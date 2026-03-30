@@ -2,7 +2,7 @@ import { kebabToPascalCase, trimDashes } from '../util';
 import { SqsDlqNameProps, SqsQueueNameProps } from './sqs.construct.props';
 
 /**
- * Provides the EDA queue naming convention for SQS queues
+ * Provides the queue naming convention for SQS queues
  * @param props.env - dev, stg, prd
  * @param props.queueType - st, fifo, task, fanin
  * @param props.serviceName - PascalCaseServiceName
@@ -19,7 +19,7 @@ export const sqsQueueName = (props: SqsQueueNameProps): string => {
 };
 
 /**
- * Provides the EDA DLQ naming convention for services that use SQS
+ * Provides the DLQ naming convention for services that use SQS
  * @param props.env - dev, stg, prd all lower cased
  * @param props.serviceName - names can be provided as kebab-case or PascalCase
  * @param props.isFifo - true if the topic is a FIFO topic
