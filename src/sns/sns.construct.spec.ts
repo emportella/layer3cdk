@@ -29,8 +29,9 @@ describe('SnsTopic', () => {
     eventName = 'MyTopic';
     sns = new SnsTopic(stack, { config, eventName });
     topicRef = stack.getLogicalId(
-      stack.node.findChild(constructId(config.stackName, 'topic', sns.eventName))
-        .node.defaultChild as CfnElement,
+      stack.node.findChild(
+        constructId(config.stackName, 'topic', sns.eventName),
+      ).node.defaultChild as CfnElement,
     );
     snsFifo = new SnsTopicFifo(stack, { config, eventName });
   });

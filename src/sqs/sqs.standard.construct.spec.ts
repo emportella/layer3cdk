@@ -10,10 +10,7 @@ import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { FilterOrPolicy, SubscriptionFilter, Topic } from 'aws-cdk-lib/aws-sns';
 import { BaseConfig } from '../core';
 import { DLQ, DLQFifo } from './sqs.dlq.construct';
-import {
-  StandardQueue,
-  StandardQueueFifo,
-} from './sqs.standard.construct';
+import { StandardQueue, StandardQueueFifo } from './sqs.standard.construct';
 import { testconfig } from '../test/common.test.const';
 
 describe('StandardQueue', () => {

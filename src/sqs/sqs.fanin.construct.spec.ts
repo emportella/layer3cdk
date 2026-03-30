@@ -34,8 +34,9 @@ describe('FaninQueue', () => {
       config,
     });
     faninQueueRef = stack.getLogicalId(
-      stack.node.findChild(`${config.stackName}-queue-${faninQueue.resourceName}`)
-        .node.defaultChild as CfnElement,
+      stack.node.findChild(
+        `${config.stackName}-queue-${faninQueue.resourceName}`,
+      ).node.defaultChild as CfnElement,
     );
     faninQueueFifo = new FaninQueueFifo(stack, {
       eventName,
