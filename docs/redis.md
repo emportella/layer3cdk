@@ -40,3 +40,5 @@ const redis = new RedisReplicationGroup(this, {
 ### Library Defaults
 
 The library ships `REDIS_RG_ENVIRONMENTS_PROPS` with sensible defaults per environment. Your `elasticacheConfig` overrides are deep-merged on top via `resolveAndMergeEnvProps()`.
+
+> **Note:** During `cdk synth` you may see a deprecation warning for `CfnReplicationGroup#cacheSecurityGroupNames`. This is emitted by CDK's internal L1 code inside `aws-cdk-lib` when serializing resource properties, not by Layer3CDK. Our construct uses `securityGroupIds` exclusively and excludes `cacheSecurityGroupNames` from the consumer-facing props type. The warning will be resolved in a future `aws-cdk-lib` release.

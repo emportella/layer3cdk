@@ -72,3 +72,4 @@ Both "Props" need to be created using the `BaseEnvProps` for defining different 
     dynamotable.setCloudWatchAlarms(this.config.alarmAction); // There are 3 different alarms defined for the table: Consumed Write Capacity, Consumed Read Capacity and Throttled Requests. The `setCloudWatchAlarms` method is used to create the alarms for the table.
     ```
 
+> **Note:** During `cdk synth` you may see deprecation warnings for `TableGrantsProps#encryptedResource` and `TableGrantsProps#policyResource`. These are emitted by CDK's internal grant machinery inside `aws-cdk-lib`, not by Layer3CDK. Our code does not reference these properties. The warnings will be resolved in a future `aws-cdk-lib` release.
