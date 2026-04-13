@@ -3,16 +3,23 @@ updates:
   - package-ecosystem: npm
     directory: /
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 1
+      interval: daily
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+      semver-minor-days: 7
+      semver-patch-days: 3
+      include:
+        - '*'
     groups:
-      dev-dependencies:
-        dependency-type: development
+      minor-and-patch:
+        patterns:
+          - '*'
         update-types:
           - minor
           - patch
     ignore:
-      - dependency-name: '@types/node'
+      - dependency-name: '*'
         update-types:
           - version-update:semver-major
 
@@ -20,4 +27,12 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 1
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+      include:
+        - '*'
+    groups:
+      actions:
+        patterns:
+          - '*'
