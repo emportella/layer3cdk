@@ -1,4 +1,4 @@
-import { ResourceTags } from 'layer3cdk';
+import { ResourceTags } from '@emportella/layer3cdk';
 import { TACO_SHOP_DOMAIN_DEFAULT_TAGS } from '../domain.config';
 
 export const SALSA_NOTIFIER_NAME = 'salsa-notifier';

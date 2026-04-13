@@ -1,4 +1,4 @@
-import { BaseConfig, BaseStack, SSS3 } from 'layer3cdk';
+import { BaseConfig, BaseStack, SSS3 } from '@emportella/layer3cdk';
 import { App } from 'aws-cdk-lib';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 

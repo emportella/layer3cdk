@@ -5,8 +5,8 @@ import {
   ChatbotSlackChannnel,
   OpsGenie,
   OpsGenieApiKeys,
-} from 'layer3cdk';
-import AlarmSnsAction from 'layer3cdk/dist/alarms/alarmAction/snsAction.construct';
+} from '@emportella/layer3cdk';
+import AlarmSnsAction from '@emportella/layer3cdk/dist/alarms/alarmAction/snsAction.construct';
 import { App } from 'aws-cdk-lib';
 import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
 

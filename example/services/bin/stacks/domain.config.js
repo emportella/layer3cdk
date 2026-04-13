@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.TACO_SHOP_DOMAIN_DEFAULT_TAGS = void 0;
+exports.TACO_SHOP_DOMAIN_DEFAULT_TAGS = {
+    TagSchemaVersion: '0.1',
+    'Ownership:Department': 'pltf',
+    'Ownership:Organization': 'Layer3CDK',
+    'Ownership:Team': 'Layer3',
+    'Eng:Application': 'tacoShopDomain',
+    'Eng:Repository': 'Layer3/taco-shop-cdk',
+};
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiZG9tYWluLmNvbmZpZy5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbImRvbWFpbi5jb25maWcudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7O0FBRWEsUUFBQSw2QkFBNkIsR0FBaUI7SUFDekQsZ0JBQWdCLEVBQUUsS0FBSztJQUN2QixzQkFBc0IsRUFBRSxNQUFNO0lBQzlCLHdCQUF3QixFQUFFLFdBQVc7SUFDckMsZ0JBQWdCLEVBQUUsUUFBUTtJQUMxQixpQkFBaUIsRUFBRSxnQkFBZ0I7SUFDbkMsZ0JBQWdCLEVBQUUsc0JBQXNCO0NBQ3pDLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgeyBSZXNvdXJjZVRhZ3MgfSBmcm9tICdAZW1wb3J0ZWxsYS9sYXllcjNjZGsnO1xuXG5leHBvcnQgY29uc3QgVEFDT19TSE9QX0RPTUFJTl9ERUZBVUxUX1RBR1M6IFJlc291cmNlVGFncyA9IHtcbiAgVGFnU2NoZW1hVmVyc2lvbjogJzAuMScsXG4gICdPd25lcnNoaXA6RGVwYXJ0bWVudCc6ICdwbHRmJyxcbiAgJ093bmVyc2hpcDpPcmdhbml6YXRpb24nOiAnTGF5ZXIzQ0RLJyxcbiAgJ093bmVyc2hpcDpUZWFtJzogJ0xheWVyMycsXG4gICdFbmc6QXBwbGljYXRpb24nOiAndGFjb1Nob3BEb21haW4nLFxuICAnRW5nOlJlcG9zaXRvcnknOiAnTGF5ZXIzL3RhY28tc2hvcC1jZGsnLFxufTtcbiJdfQ==

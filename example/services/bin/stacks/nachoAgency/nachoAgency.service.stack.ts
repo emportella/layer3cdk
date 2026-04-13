@@ -6,7 +6,7 @@ import {
   ApplicationRepository,
   EcsCluster,
   EcsFargateService,
-} from 'layer3cdk';
+} from '@emportella/layer3cdk';
 import { App } from 'aws-cdk-lib';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { ContainerImage } from 'aws-cdk-lib/aws-ecs';

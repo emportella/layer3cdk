@@ -8,7 +8,7 @@ import {
   FaninQueue,
   ApplicationRepository,
   DepartmentSSMStringParameter,
-} from 'layer3cdk';
+} from '@emportella/layer3cdk';
 import { App } from 'aws-cdk-lib';
 import { AlarmActionConfig } from '../tacoProcessor/tacoProcessor.service.stack';
 

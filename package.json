@@ -39,6 +39,9 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
+  "workspaces": [
+    "example/services"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",

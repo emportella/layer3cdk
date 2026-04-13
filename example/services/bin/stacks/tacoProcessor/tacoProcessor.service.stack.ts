@@ -14,7 +14,7 @@ import {
   ServiceSSMStringParameter,
   GlobalSecrets,
   NodejsLambdaFunction,
-} from 'layer3cdk';
+} from '@emportella/layer3cdk';
 import { App } from 'aws-cdk-lib';
 import { AttributeType, Billing, Capacity } from 'aws-cdk-lib/aws-dynamodb';
 import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';

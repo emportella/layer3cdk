@@ -7,7 +7,7 @@ import {
   StandardQueue,
   ApplicationRepository,
   LambdaFunction,
-} from 'layer3cdk';
+} from '@emportella/layer3cdk';
 import { App, Duration } from 'aws-cdk-lib';
 import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
@@ -131,7 +131,9 @@ export class GuacWarehouseServiceStack extends BaseStack {
       runtime: Runtime.NODEJS_20_X,
       handler: 'index.handler',
       codeProvider: () =>
-        Code.fromAsset(path.join(__dirname, '../../handlers/ingest-recipe-file')),
+        Code.fromAsset(
+          path.join(__dirname, '../../handlers/ingest-recipe-file'),
+        ),
       lambdaConfig: {
         default: { memorySize: 512, timeout: Duration.minutes(2) },
         prd: { memorySize: 1024 },

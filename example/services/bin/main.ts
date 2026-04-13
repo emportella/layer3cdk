@@ -1,4 +1,4 @@
-import { BaseStackConfig } from 'layer3cdk';
+import { BaseStackConfig } from '@emportella/layer3cdk';
 import { App } from 'aws-cdk-lib';
 import { IAlarmAction } from 'aws-cdk-lib/aws-cloudwatch';
 import {
