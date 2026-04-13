@@ -411,4 +411,4 @@ refactor: simplify BaseEnvProps resolution
 
 ## License
 
-[MIT](./LICENSE) - Eduardo Portella
+[MIT](./LICENSE) - emportella

@@ -2,7 +2,7 @@
   "name": "taco-shop-cdk",
   "version": "1.0.0",
   "description": "CDK repository for Taco Shop domain",
-  "author": "Layer3 Inc.",
+  "author": "emportella",
   "private": true,
   "bin": {
     "taco_shop_cdk": "bin/main.js"
