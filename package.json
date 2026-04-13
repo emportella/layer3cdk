@@ -4,6 +4,14 @@
   "description": "Layer3CDK - L3 patterns for AWS CDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "!dist/**/*.spec.js",
+    "!dist/**/*.spec.d.ts",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "prebuild": "rm -rf dist coverage",
     "prepare": "husky && npm run build",
