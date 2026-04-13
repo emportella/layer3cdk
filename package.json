@@ -1,5 +1,5 @@
 {
-  "name": "layer3cdk",
+  "name": "@emportella/layer3cdk",
   "version": "0.1.0",
   "description": "Layer3CDK - L3 patterns for AWS CDK",
   "main": "dist/index.js",
@@ -36,6 +36,9 @@
     "url": "https://github.com/emportella/layer3cdk/issues"
   },
   "homepage": "https://github.com/emportella/layer3cdk#readme",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
