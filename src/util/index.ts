@@ -41,8 +41,10 @@ export function pascalCaseToKebabCase(input: string): string {
  * @example trimDashes('---hello---') // 'hello'
  */
 export function trimDashes(input: string): string {
-  return input
-    .trim()
-    .replace(/^-+|-+$/g, '')
-    .trim();
+  const s = input.trim();
+  let start = 0;
+  let end = s.length;
+  while (start < end && s[start] === '-') start++;
+  while (end > start && s[end - 1] === '-') end--;
+  return s.slice(start, end).trim();
 }
