@@ -1,6 +1,6 @@
 {
   "name": "@emportella/layer3cdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Layer3CDK - L3 patterns for AWS CDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
