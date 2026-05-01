@@ -51,11 +51,11 @@
     "example/services"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^20.5.0",
+    "@commitlint/cli": "^20.5.2",
     "@commitlint/config-conventional": "^20.5.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.19.37",
-    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.57.2",
     "esbuild": "^0.28.0",
     "eslint": "^10.1.0",
