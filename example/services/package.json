@@ -22,7 +22,7 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "@types/node": "^20.19.37",
-    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.57.2",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
@@ -34,7 +34,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "aws-cdk-lib": "^2.250.0",
+    "aws-cdk-lib": "^2.251.0",
     "constructs": "^10.6.0",
     "@emportella/layer3cdk": "file:../../"
   }
