@@ -14,13 +14,13 @@
   ],
   "scripts": {
     "prebuild": "rm -rf dist coverage",
-    "prepare": "husky && npm run build",
+    "prepare": "husky && pnpm run build",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
-    "format:check": "npm run format -- --check",
-    "format:write": "npm run format -- --write",
+    "format:check": "pnpm run format --check",
+    "format:write": "pnpm run format --write",
     "lint": "eslint \"src/**/*.ts\"",
-    "lint:fix": "npm run lint -- --fix",
+    "lint:fix": "pnpm run lint --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage"

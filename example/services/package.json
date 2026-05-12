@@ -10,14 +10,14 @@
   "scripts": {
     "build": "tsc",
     "format": "prettier \"bin/**/*.ts\"",
-    "format:check": "npm run format -- --check",
-    "format:write": "npm run format -- --write",
+    "format:check": "pnpm run format -- --check",
+    "format:write": "pnpm run format -- --write",
     "watch": "tsc -w",
     "test": "jest",
     "test:cov": "jest --coverage",
     "cdk": "cdk",
     "lint": "eslint \"bin/**/*.ts\"",
-    "lint:fix": "npm run lint -- --fix"
+    "lint:fix": "pnpm run lint -- --fix"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
