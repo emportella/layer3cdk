@@ -1,1 +1,16 @@
-pnpm run format:write && pnpm run lint:fix
+#!/bin/sh
+set -euo
+
+# Ensure pnpm is available. Prefer an existing pnpm, otherwise try Corepack,
+# and fall back to npm to avoid breaking contributors without pnpm installed.
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm run format:write && pnpm run lint:fix
+else
+  if command -v corepack >/dev/null 2>&1; then
+    corepack enable
+    corepack prepare pnpm@10.33.0 --activate
+    pnpm run format:write && pnpm run lint:fix
+  else
+    npm run format:write && npm run lint:fix
+  fi
+fi
