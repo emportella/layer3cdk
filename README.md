@@ -1,6 +1,6 @@
 # Layer3CDK
 
-[![Integration](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml/badge.svg)](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml)
+[![Integration](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml/badge.svg?branch=main)](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml)
 [![npm version](https://img.shields.io/npm/v/@emportella/layer3cdk?registry=https%3A%2F%2Fnpm.pkg.github.com)](https://github.com/emportella/layer3cdk/pkgs/npm/layer3cdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
