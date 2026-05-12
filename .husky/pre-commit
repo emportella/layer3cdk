@@ -1,1 +1,1 @@
-npm run format:write && npm run lint:fix
+pnpm run format:write && pnpm run lint:fix
