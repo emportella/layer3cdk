@@ -1,7 +1,7 @@
 # Layer3CDK
 
 [![Integration](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml/badge.svg?branch=main)](https://github.com/emportella/layer3cdk/actions/workflows/integration.yml)
-[![npm version](https://img.shields.io/npm/v/@emportella/layer3cdk?registry=https%3A%2F%2Fnpm.pkg.github.com)](https://github.com/emportella/layer3cdk/pkgs/npm/layer3cdk)
+[![GitHub Packages](https://img.shields.io/badge/GitHub%20Packages-@emportella%2Flayer3cdk-blue)](https://github.com/emportella/layer3cdk/pkgs/npm/layer3cdk)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 **Production-ready AWS CDK L3 constructs that eliminate boilerplate and enforce best practices.**
