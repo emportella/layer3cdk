@@ -1,6 +1,6 @@
 {
   "name": "@emportella/layer3cdk",
-  "version": "0.1.2",
+  "version": "0.1.1",
   "description": "Layer3CDK - L3 patterns for AWS CDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -69,6 +69,6 @@
     "constructs": "^10.6.0"
   },
   "overrides": {
-    "fast-uri": "3.1.2"
+    "fast-uri": "^3.1.2"
   }
 }
