@@ -382,12 +382,12 @@ index.ts                         # Barrel exports
 ## Development
 
 ```bash
-npm install          # Install dependencies
-npm run build        # TypeScript compilation (tsc -> dist/)
-npm run test         # Run tests (314 tests across 38 suites)
-npm run test:cov     # Run tests with coverage (thresholds: 75/75/60/75)
-npm run lint         # ESLint check
-npm run lint:fix     # ESLint + Prettier auto-fix
+pnpm install         # Install dependencies
+pnpm run build       # TypeScript compilation (tsc -> dist/)
+pnpm run test        # Run tests (314 tests across 38 suites)
+pnpm run test:cov    # Run tests with coverage (thresholds: 75/75/60/75)
+pnpm run lint        # ESLint check
+pnpm run lint:fix    # ESLint + Prettier auto-fix
 ```
 
 ### Commit Convention

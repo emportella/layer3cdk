@@ -9,12 +9,12 @@ A description of any breaking changes to the public API. Remove this section if 
 ### Testing
 
 - [ ] Unit tests added/updated
-- [ ] `npm run test:cov` passes with coverage thresholds met
-- [ ] `npm run build` compiles without errors
+- [ ] `pnpm run test:cov` passes with coverage thresholds met
+- [ ] `pnpm run build` compiles without errors
 - [ ] Example project (`example/services/`) updated if new constructs are added
 
 ### Dependencies
 
 Consumer CDK project and PR where these changes were validated (if applicable).
 
-* Project: `<project-name>-cdk` — link to PR
+- Project: `<project-name>-cdk` — link to PR
