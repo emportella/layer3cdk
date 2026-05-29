@@ -65,10 +65,10 @@ importers:
     dependencies:
       '@emportella/layer3cdk':
         specifier: file:../../
-        version: file:(aws-cdk-lib@2.256.1(constructs@10.6.0))(constructs@10.6.0)
+        version: file:(aws-cdk-lib@2.257.0(constructs@10.6.0))(constructs@10.6.0)
       aws-cdk-lib:
-        specifier: ^2.256.1
-        version: 2.256.1(constructs@10.6.0)
+        specifier: ^2.257.0
+        version: 2.257.0(constructs@10.6.0)
       constructs:
         specifier: ^10.6.0
         version: 10.6.0
@@ -1072,8 +1072,8 @@ packages:
       - yaml
       - mime-types
 
-  aws-cdk-lib@2.256.1:
-    resolution: {integrity: sha512-18xLE+iqzjvpYGGKJy+9zyvF8loUSXjpVV2MtVLPQ/hPgeWHQiVsqLOWNsBemd3pU7o0L9wXfRY+xqG80vlZFw==}
+  aws-cdk-lib@2.257.0:
+    resolution: {integrity: sha512-GoHfWklrBJcMwLtDlY64pvaT7cD2KyDXC8sik89DR6jHl6nQsBtYTKSJCM+C/k4jgXaecbv8myNX75FySejq0A==}
     engines: {node: '>= 20.0.0'}
     peerDependencies:
       constructs: ^10.5.0
@@ -2633,9 +2633,9 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@emportella/layer3cdk@file:(aws-cdk-lib@2.256.1(constructs@10.6.0))(constructs@10.6.0)':
+  '@emportella/layer3cdk@file:(aws-cdk-lib@2.257.0(constructs@10.6.0))(constructs@10.6.0)':
     dependencies:
-      aws-cdk-lib: 2.256.1(constructs@10.6.0)
+      aws-cdk-lib: 2.257.0(constructs@10.6.0)
       constructs: 10.6.0
 
   '@esbuild/aix-ppc64@0.28.0':
@@ -3387,7 +3387,7 @@ snapshots:
       '@aws-cdk/cloud-assembly-schema': 53.22.0
       constructs: 10.6.0
 
-  aws-cdk-lib@2.256.1(constructs@10.6.0):
+  aws-cdk-lib@2.257.0(constructs@10.6.0):
     dependencies:
       '@aws-cdk/asset-awscli-v1': 2.2.273
       '@aws-cdk/asset-node-proxy-agent-v6': 2.1.2
